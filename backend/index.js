@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './Config/db.js';
-import user from './Routers/user.js';
+import user from './Routers/userRoute.js';
 
 
 dotenv.config();
@@ -21,7 +21,7 @@ app.use(cors({
 connectDB();
 
 
-app.use('/api', user);
+app.use('/api/user', user);
 
 
 

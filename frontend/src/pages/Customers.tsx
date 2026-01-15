@@ -22,35 +22,33 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import {createCustomer, getCustomersFromBackend} from "@/api/apiCall.tsx";
 
 interface Customer {
   id: string;
   name: string;
   businessName: string;
+  panNumber: string;
   area: string;
   phoneNumber: string;
-  createdAt: string;
 }
 
 const Customers: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>([
-    {
-      id: '1',
-      name: 'John Smith',
-      businessName: 'Smith Electronics',
-      area: 'Downtown',
-      phoneNumber: '+1 234 567 8900',
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      businessName: 'Tech Solutions Ltd',
-      area: 'Industrial Zone',
-      phoneNumber: '+1 234 567 8901',
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
+
+  // Fetching Customers from backend can be implemented here
+
+  
+  // React.useEffect(() => {
+  //   const fetchCustomers = async () => {
+  //     const data = await getCustomersFromBackend();
+  //     setCustomers(data);
+  //   };
+  //   fetchCustomers();
+  // }, []);
+
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -60,19 +58,21 @@ const Customers: React.FC = () => {
   // Form states
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
+  const [panNumber, setPanNumber] = useState('');
   const [area, setArea] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const resetForm = () => {
     setName('');
     setBusinessName('');
+    setPanNumber('');
     setArea('');
     setPhoneNumber('');
   };
 
-  const handleAddCustomer = () => {
-    if (!name.trim()) {
-      toast.error('Customer name is required');
+  const handleAddCustomer = async () => {
+    if (!name.trim() || !panNumber.trim() || !area.trim() || !phoneNumber.trim() || !businessName.trim()) {
+      toast.error('Details required');
       return;
     }
 
@@ -80,15 +80,21 @@ const Customers: React.FC = () => {
       id: Date.now().toString(),
       name: name.trim(),
       businessName: businessName.trim(),
+      panNumber: panNumber.trim(),
       area: area.trim(),
-      phoneNumber: phoneNumber.trim(),
-      createdAt: new Date().toISOString(),
+      phoneNumber: phoneNumber.trim()
     };
 
-    setCustomers([...customers, newCustomer]);
+    const result = await createCustomer(newCustomer);
+    
+    if(!result.success){
+      toast.error(result.error || 'Failed to create customer');
+      return;
+    }
     toast.success('Customer added successfully');
     resetForm();
     setIsAddDialogOpen(false);
+    fetchCustomers();
   };
 
   const handleEditCustomer = () => {
@@ -122,6 +128,23 @@ const Customers: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
+  const fetchCustomers = async () => {
+    const result = await getCustomersFromBackend();
+
+    if (result.success && result.data) {
+      setCustomers(result.data);
+    } else {
+      toast.error(result.error || "Failed to fetch customers");
+    }
+  };
+
+  React.useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+
+  // console.log("Fetched Customers: ", customers);
+
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -153,7 +176,7 @@ const Customers: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Customer Name *</Label>
+                <Label htmlFor="name">Customer Name </Label>
                 <Input
                   id="name"
                   placeholder="Enter customer name"
@@ -170,6 +193,16 @@ const Customers: React.FC = () => {
                   onChange={(e) => setBusinessName(e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="panNumber">Pan Number</Label>
+                <Input
+                  id="panNumber"
+                  placeholder="Enter pan number"
+                  value={panNumber}
+                  onChange={(e) => setPanNumber(e.target.value)}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="area">Area</Label>
                 <Input
@@ -246,6 +279,7 @@ const Customers: React.FC = () => {
               <TableRow>
                 <TableHead>Customer Name</TableHead>
                 <TableHead className="hidden sm:table-cell">Business Name</TableHead>
+                <TableHead className="hidden md:table-cell">Pan Number</TableHead>
                 <TableHead className="hidden md:table-cell">Area</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -278,6 +312,14 @@ const Customers: React.FC = () => {
                         {customer.businessName || '-'}
                       </div>
                     </TableCell>
+
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        {customer.panNumber || '-'}
+                      </div>
+                    </TableCell>
+
                     <TableCell className="hidden md:table-cell">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />

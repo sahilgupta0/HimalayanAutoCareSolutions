@@ -5,9 +5,6 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
-  isActive: boolean;
-  createdAt: string;
-  avatar?: string;
 }
 
 export interface Product {

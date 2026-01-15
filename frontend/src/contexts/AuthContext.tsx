@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole } from '@/types';
 import { mockUsers } from '@/data/mockData';
+import { login as apiLogin } from '@/api/apiCall';
 
 interface AuthContextType {
   user: User | null;
@@ -49,19 +50,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     // Mock authentication - in real app, this would call an API
-    const foundUser = mockUsers.find(u => u.email === email && u.isActive);
+    // const foundUser = mockUsers.find(u => u.email === email );
+    const result = await apiLogin(email, password);
 
-    if (!foundUser) {
+    if (result.success === false) {
       return { success: false, error: 'Invalid email or password' };
     }
 
     // For demo, any password works for valid emails
-    if (password.length < 1) {
-      return { success: false, error: 'Password is required' };
-    }
+    // if (password.length < 1) {
+    //   return { success: false, error: 'Password is required' };
+    // }
 
-    setUser(foundUser);
-    localStorage.setItem('inventoryUser', JSON.stringify(foundUser));
+    setUser(result.data.user);
+    localStorage.setItem('inventoryUser', JSON.stringify(result.data.token));
     return { success: true };
   };
 

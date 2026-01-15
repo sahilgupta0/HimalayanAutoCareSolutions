@@ -35,13 +35,12 @@ const Login: React.FC = () => {
 
     setIsLoading(true);
 
-    const result = await apiLogin(email, password);
+    // const result = await apiLogin(email, password);
+    const result = await login(email, password);
     console.log('Login result:', result);
 
     if (result.success) {
       toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });
-
-      localStorage.setItem('token', result.data.token);
       navigate(from, { replace: true });
     } else {
       toast({ title: 'Login failed', description: result.error, variant: 'destructive' });

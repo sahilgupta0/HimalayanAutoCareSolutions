@@ -5,37 +5,25 @@ export const mockUsers: User[] = [
     id: '1',
     email: 'admin@inventory.com',
     name: 'John Admin',
-    role: 'admin',
-    isActive: true,
-    createdAt: '2024-01-15T08:00:00Z',
-    avatar: 'JA',
+    role: 'admin'
   },
   {
     id: '2',
     email: 'sales@inventory.com',
     name: 'Sarah Sales',
     role: 'sales',
-    isActive: true,
-    createdAt: '2024-02-20T09:30:00Z',
-    avatar: 'SS',
   },
   {
     id: '3',
     email: 'mike@inventory.com',
     name: 'Mike Manager',
     role: 'admin',
-    isActive: true,
-    createdAt: '2024-01-10T07:00:00Z',
-    avatar: 'MM',
   },
   {
     id: '4',
     email: 'emma@inventory.com',
     name: 'Emma Employee',
     role: 'sales',
-    isActive: false,
-    createdAt: '2024-03-05T10:00:00Z',
-    avatar: 'EE',
   },
 ];
 
