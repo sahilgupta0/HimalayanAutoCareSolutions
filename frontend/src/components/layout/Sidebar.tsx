@@ -47,6 +47,7 @@ const navItems: NavItem[] = [
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = false }) => {
   const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
+  
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
   
@@ -59,10 +60,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = fal
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300 flex flex-col',
-        isCollapsed ? 'w-20' : 'w-64'
+        'h-screen bg-sidebar transition-all duration-300 flex flex-col',
+        isMobile
+          ? 'relative w-64'
+          : cn('fixed left-0 top-0 z-50', isCollapsed ? 'w-20' : 'w-64')
       )}
     >
+
       {/* Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border">
         <div className={cn('flex items-center gap-3', isCollapsed && !isMobile && 'justify-center w-full')}>
@@ -132,8 +136,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = fal
       {/* User Section */}
       <div className="p-3 border-t border-sidebar-border">
         <div className={cn('flex items-center gap-3 mb-3', isCollapsed && 'justify-center')}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-sidebar-accent text-sidebar-foreground text-sm font-semibold shrink-0">
-            {user?.avatar || user?.name.charAt(0)}
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-sidebar-accent text-sidebar-foreground text-base font-semibold shrink-0">
+            {user?.name.charAt(0)}
+
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
@@ -178,9 +183,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = fal
           className="absolute -right-3 top-20 h-6 w-6 rounded-full border bg-card shadow-md hover:bg-secondary"
         >
           {isCollapsed ? (
-            <ChevronRight className="h-3 w-3" />
+            <ChevronRight className="h-3 w-3 text-blue-950" />
           ) : (
-            <ChevronLeft className="h-3 w-3" />
+            <ChevronLeft className="h-3 w-3 text-blue-950" />
           )}
         </Button>
       )}

@@ -36,10 +36,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedUser = localStorage.getItem('inventoryUser');
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
+        const id = localStorage.getItem('id');
+        const name = localStorage.getItem('name');
+        const role = localStorage.getItem('role');
+        const email = localStorage.getItem('email');
+
+        setUser({
+          id: id,
+          name: name,
+          role: role as UserRole,
+          email: email,
+        });
       } catch {
-        localStorage.removeItem('inventoryUser');
+        // localStorage.removeItem('inventoryUser');
+        console.error('Failed to parse stored user data');
       }
     }
     setIsLoading(false);
@@ -63,13 +73,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // }
 
     setUser(result.data.user);
-    localStorage.setItem('inventoryUser', JSON.stringify(result.data.token));
+    localStorage.setItem('inventoryUser', result.data.token);
+    localStorage.setItem('id', result.data.user._id);
+    localStorage.setItem('name', result.data.user.name);
+    localStorage.setItem('role', result.data.user.role);
+    localStorage.setItem('email', result.data.user.email);
+
     return { success: true };
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('id');
     localStorage.removeItem('inventoryUser');
+    localStorage.removeItem('name');
+    localStorage.removeItem('role');
+    localStorage.removeItem('email');
   };
 
   const hasRole = (role: UserRole): boolean => {

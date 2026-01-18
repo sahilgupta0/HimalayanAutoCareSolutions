@@ -40,8 +40,10 @@ const MainLayout: React.FC = () => {
       {/* Mobile Overlay */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-foreground/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden',
-          mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          'fixed inset-0 bg-foreground/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden z-40',
+          mobileMenuOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
         )}
         onClick={() => setMobileMenuOpen(false)}
       />
@@ -62,7 +64,7 @@ const MainLayout: React.FC = () => {
         )}
       >
         <Sidebar 
-          isCollapsed={false} 
+          isCollapsed={sidebarCollapsed} 
           onToggle={() => setMobileMenuOpen(false)} 
           isMobile={true}
         />

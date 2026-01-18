@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mockSales, mockProducts } from '@/data/mockData';
 import { Sale, SaleItem, Product } from '@/types';
@@ -125,6 +125,10 @@ const Sales: React.FC = () => {
     setCart(cart.filter(item => item.productId !== productId));
   };
 
+  // useEffect(() => { 
+  //   setSelectedSale(sales)
+  // }, [sales]);
+
   const handleCompleteSale = () => {
     if (cart.length === 0) {
       toast({ title: 'Error', description: 'Please add items to the cart', variant: 'destructive' });
@@ -169,11 +173,9 @@ const Sales: React.FC = () => {
 
   const salesColumns = [
     {
-      key: 'invoiceNumber',
-      header: 'Invoice',
-      render: (sale: Sale) => (
-        <span className="font-medium text-primary">{sale.invoiceNumber}</span>
-      ),
+      key: 'createdAt',
+      header: 'Date',
+      render: (sale: Sale) => format(new Date(sale.createdAt), 'MMM dd, yyyy HH:mm'),
     },
     {
       key: 'customerName',
@@ -205,11 +207,7 @@ const Sales: React.FC = () => {
         </StatusBadge>
       ),
     },
-    {
-      key: 'createdAt',
-      header: 'Date',
-      render: (sale: Sale) => format(new Date(sale.createdAt), 'MMM dd, yyyy HH:mm'),
-    },
+    
     {
       key: 'actions',
       header: 'Actions',

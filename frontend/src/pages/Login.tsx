@@ -7,16 +7,36 @@ import { Label } from '@/components/ui/label';
 import { Box, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { login as apiLogin } from '@/api/apiCall';
+import { Navigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadings, setisLoadings] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+
+
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    console.log('User is already authenticated, redirecting to dashboard.');
+    return <Navigate to="/dashboard" />;
+  }
+  
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
 
@@ -33,7 +53,7 @@ const Login: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    setisLoadings(true);
 
     // const result = await apiLogin(email, password);
     const result = await login(email, password);
@@ -45,7 +65,7 @@ const Login: React.FC = () => {
     } else {
       toast({ title: 'Login failed', description: result.error, variant: 'destructive' });
     }
-    setIsLoading(false);
+    setisLoadings(false);
   };
 
   return (
@@ -118,7 +138,7 @@ const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-12"
-                disabled={isLoading}
+                disabled={isLoadings}
               />
             </div>
 
@@ -132,7 +152,7 @@ const Login: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="h-12 pr-12"
-                  disabled={isLoading}
+                  disabled={isLoadings}
                 />
                 <Button
                   type="button"
@@ -146,8 +166,8 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full h-12 text-base" disabled={isLoadings}>
+              {isLoadings ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...
