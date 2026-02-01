@@ -6,9 +6,9 @@ const salesSchema = new mongoose.Schema({
     quantity: { type: Number, required: true },
     subTotal: { type: Number, required: true },
     discount: { type: Number, default: 0 },
-    total: { type: Number, required: true },
+    totalPrice: { type: Number, required: true },
     status : { type: String, enum: ['Pending', 'Completed', 'Cancelled'], default: 'Pending' },
-    customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+    customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
     salesPersonId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 })
 

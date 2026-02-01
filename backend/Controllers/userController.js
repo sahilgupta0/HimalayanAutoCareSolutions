@@ -1,5 +1,6 @@
 import User from '../Models/userModel.js';
-import Customer from '../Models/customerModel.js';
+
+import Sale from '../Models/salesModel.js';
 import jwt from 'jsonwebtoken';
 
 
@@ -9,6 +10,7 @@ export const loginController = async (req, res) => {
     const {email, password} = req.body;
 
     const user = await User.findOne({email, password});
+    console.log('Found user:', user);
     if(!user){
         return res.status(404).json({message: 'User not found'});
     }   
@@ -37,22 +39,34 @@ export const signupController = async (req, res) => {
     return res.status(201).json({message: 'User created successfully', newUser});
 }
 
-export const createCustomerController = async (req, res) => {
-    // Logic for creating a new customer
-    const {name, businessName, panNumber, area, phoneNumber} = req.body;
-    // Here you would typically save the customer to the database
-    const newCustomer = new Customer({name, businessName, panNumber, area, phoneNumber});
-    await newCustomer.save();
-    return res.status(201).json({message: 'Customer created successfully', newCustomer});
-    
-}
 
-
-export const getCustomerController = async (req, res) => {
+export const getSalesController = async (req, res) => {
+    // Logic for fetching sales data
     try {
-        const customers = await Customer.find();    
-        return res.status(200).json(customers);
+        const sales = await Sale.find();    
+        return res.status(200).json(sales);
     } catch (error) {
-        return res.status(500).json({ message: 'Error fetching customers', error });
+        return res.status(500).json({ message: 'Error fetching sales', error });
     }
 }
+
+export const createSalesController = async (req, res) => {
+    // Logic for creating a new sales record
+    const { productName, quantity, subTotal, discount, totalPrice, customerId, salesPersonId } = req.body;
+    // Here you would typically save the sales record to the database
+    const newSale = new Sale({ productName, quantity, subTotal, discount, totalPrice, customerId, salesPersonId });
+    await newSale.save();
+    return res.status(201).json({ message: 'Sales record created successfully', newSale });
+}
+
+export const getPersonalSalesController = async (req, res) => {
+    // Logic for fetching personal sales data
+    const { salesPersonId } = req.query;
+    try {
+        const sales = await Sale.find({ salesPersonId });    
+        return res.status(200).json(sales);
+    } catch (error) {
+        return res.status(500).json({ message: 'Error fetching personal sales', error });
+    }   
+}  
+

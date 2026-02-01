@@ -19,6 +19,7 @@ import Users from "./pages/Users";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
+import Request from "./pages/Request";
 
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/customers" element={<Customers />} />
               <Route path="/sales" element={<Sales />} />
               <Route path="/invoices" element={<Invoices />} />
+              <Route path="/request" element={<Request />} />
               
               {/* Admin Only Routes */}
               <Route
@@ -82,6 +84,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              
             </Route>
 
             <Route path="*" element={<NotFound />} />

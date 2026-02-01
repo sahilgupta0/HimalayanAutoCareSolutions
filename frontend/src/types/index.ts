@@ -8,17 +8,9 @@ export interface User {
 }
 
 export interface Product {
-  id: string;
   name: string;
-  sku: string;
-  category: string;
-  costPrice: number;
   sellingPrice: number;
   currentStock: number;
-  minStockLevel: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface StockHistory {

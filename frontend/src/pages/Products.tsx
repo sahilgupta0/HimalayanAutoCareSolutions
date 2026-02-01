@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { mockProducts } from '@/data/mockData';
 import { Product } from '@/types';
 import { DataTable } from '@/components/ui/data-table';
-import StatusBadge from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,41 +13,41 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { createProduct, getProducts } from '@/api/apiCall';
 
 const Products: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const [products, setProducts] = useState<any[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
+    _id: '',
     name: '',
-    sku: '',
-    category: '',
-    costPrice: '',
     sellingPrice: '',
-    minStockLevel: '',
-    isActive: true,
+    currentStock: '',
   });
 
-  const categories = ['Electronics', 'Furniture', 'Accessories', 'Office Supplies'];
+  const fetchProducts = async () => {
+    const response = await getProducts();
+    console.log("Products fetched:", response.data);
+    if (response.success) {
+      setProducts(response.data);
+    } else {
+      toast({ title: 'Error', description: response.error || 'Failed to fetch products', variant: 'destructive' });
+    }
+  };
+
+  React.useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter(
     (product) =>
-      product.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchValue.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchValue.toLowerCase())
+      product.name.toLowerCase().includes(searchValue.toLowerCase())
   );
 
   const formatCurrency = (amount: number) => {
@@ -58,157 +57,119 @@ const Products: React.FC = () => {
     }).format(amount);
   };
 
-  const handleOpenDialog = (product?: Product) => {
+  const handleOpenDialog = (product?: any) => {
     if (product) {
       setEditingProduct(product);
       setFormData({
+        _id: product._id || '',
         name: product.name,
-        sku: product.sku,
-        category: product.category,
-        costPrice: product.costPrice.toString(),
         sellingPrice: product.sellingPrice.toString(),
-        minStockLevel: product.minStockLevel.toString(),
-        isActive: product.isActive,
+        currentStock: product.currentStock.toString(),
       });
     } else {
       setEditingProduct(null);
       setFormData({
+        _id: '',
         name: '',
-        sku: '',
-        category: '',
-        costPrice: '',
         sellingPrice: '',
-        minStockLevel: '',
-        isActive: true,
+        currentStock: '',
       });
     }
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.sku || !formData.category || !formData.costPrice || !formData.sellingPrice) {
+  const handleSubmit = async() => {
+    if (!formData.name || !formData.sellingPrice || !formData.currentStock) {
       toast({ title: 'Error', description: 'Please fill in all required fields', variant: 'destructive' });
       return;
     }
 
-    if (editingProduct) {
-      setProducts(
-        products.map((p) =>
-          p.id === editingProduct.id
-            ? {
-                ...p,
-                ...formData,
-                costPrice: parseFloat(formData.costPrice),
-                sellingPrice: parseFloat(formData.sellingPrice),
-                minStockLevel: parseInt(formData.minStockLevel) || 0,
-                updatedAt: new Date().toISOString(),
-              }
-            : p
-        )
-      );
-      toast({ title: 'Success', description: 'Product updated successfully' });
-    } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: formData.name,
-        sku: formData.sku,
-        category: formData.category,
-        costPrice: parseFloat(formData.costPrice),
-        sellingPrice: parseFloat(formData.sellingPrice),
-        currentStock: 0,
-        minStockLevel: parseInt(formData.minStockLevel) || 0,
-        isActive: formData.isActive,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setProducts([newProduct, ...products]);
-      toast({ title: 'Success', description: 'Product created successfully' });
+    if (isNaN(parseFloat(formData.sellingPrice)) || parseFloat(formData.sellingPrice) <= 0) {
+      toast({ title: 'Error', description: 'Please enter a valid selling price', variant: 'destructive' });
+      return;
     }
 
-    setIsDialogOpen(false);
-  };
+    if (isNaN(parseInt(formData.currentStock)) || parseInt(formData.currentStock) < 0) {
+      toast({ title: 'Error', description: 'Please enter a valid current stock level', variant: 'destructive' });
+      return;
+    }
 
-  const toggleProductStatus = (productId: string) => {
-    setProducts(
-      products.map((p) =>
-        p.id === productId ? { ...p, isActive: !p.isActive, updatedAt: new Date().toISOString() } : p
-      )
-    );
-    toast({ title: 'Success', description: 'Product status updated' });
+    if (!Number.isInteger(parseFloat(formData.currentStock))) {
+      toast({ title: 'Error', description: 'Current stock level must be a whole number', variant: 'destructive' });
+      return;
+    }
+
+    const productPayload = {
+      ...(formData._id && { _id: formData._id }),
+      name: formData.name,
+      sellingPrice: parseFloat(formData.sellingPrice),
+      currentStock: parseInt(formData.currentStock) || 0,
+    };
+
+    const response = await createProduct(productPayload);
+    
+    if (response.success) {
+      if (editingProduct) {
+        toast({ title: 'Success', description: 'Product updated successfully' });
+      } else {
+        toast({ title: 'Success', description: 'Product created successfully' });
+      }
+      fetchProducts();
+      setIsDialogOpen(false);
+    } else {
+      const errorMsg = editingProduct ? 'Failed to update product' : 'Failed to create product';
+      toast({ title: 'Error', description: response.error || errorMsg, variant: 'destructive' });
+      return;
+    }
   };
 
   const columns = [
     {
       key: 'name',
       header: 'Product',
-      render: (product: Product) => (
+      render: (product: any) => (
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
             <Package className="h-5 w-5 text-primary" />
           </div>
           <div>
             <p className="font-medium">{product.name}</p>
-            <p className="text-sm text-muted-foreground">{product.sku}</p>
+            
           </div>
         </div>
       ),
     },
     {
-      key: 'category',
-      header: 'Category',
-      render: (product: Product) => (
-        <StatusBadge status="info">{product.category}</StatusBadge>
-      ),
-    },
-    {
-      key: 'costPrice',
-      header: 'Cost Price',
-      render: (product: Product) => formatCurrency(product.costPrice),
-    },
-    {
       key: 'sellingPrice',
       header: 'Selling Price',
-      render: (product: Product) => (
+      render: (product: any) => (
         <span className="font-medium">{formatCurrency(product.sellingPrice)}</span>
       ),
     },
     {
       key: 'stock',
       header: 'Stock',
-      render: (product: Product) => {
-        const isLowStock = product.currentStock < product.minStockLevel;
+      render: (product: any) => {
         return (
           <div>
-            <span className={isLowStock ? 'text-warning font-medium' : ''}>
-              {product.currentStock}
-            </span>
-            <span className="text-muted-foreground text-sm"> / {product.minStockLevel} min</span>
+            <span>{product.currentStock}</span>
           </div>
         );
       },
     },
     {
-      key: 'status',
-      header: 'Status',
-      render: (product: Product) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={product.isActive}
-            onCheckedChange={() => toggleProductStatus(product.id)}
-          />
-          <span className="text-sm">{product.isActive ? 'Active' : 'Inactive'}</span>
-        </div>
-      ),
-    },
-    {
       key: 'actions',
       header: 'Actions',
-      render: (product: Product) => (
-        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(product)}>
+      render: (product: any) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleOpenDialog(product)}
+        >
           <Edit className="h-4 w-4" />
         </Button>
       ),
-    },
+    }
   ];
 
   return (
@@ -238,11 +199,18 @@ const Products: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             <DialogDescription>
-              {editingProduct ? 'Update the product details below.' : 'Fill in the product details below.'}
+              {editingProduct ? `Update product details (ID: ${formData._id}).` : 'Fill in the product details below.'}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
+            {editingProduct && (
+              <div className="grid gap-2 p-2 bg-muted rounded border">
+                <p className="text-xs font-medium text-muted-foreground">Product ID</p>
+                <p className="text-sm font-mono font-medium">{formData._id}</p>
+              </div>
+            )}
+            
             <div className="grid gap-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
@@ -253,78 +221,30 @@ const Products: React.FC = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="sku">SKU *</Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  placeholder="e.g., ELEC-001"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category *</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="costPrice">Cost Price *</Label>
-                <Input
-                  id="costPrice"
-                  type="number"
-                  value={formData.costPrice}
-                  onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="sellingPrice">Selling Price *</Label>
-                <Input
-                  id="sellingPrice"
-                  type="number"
-                  value={formData.sellingPrice}
-                  onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="sellingPrice">Selling Price *</Label>
+              <Input
+                id="sellingPrice"
+                type="number"
+                step="0.01"
+                value={formData.sellingPrice}
+                onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+                placeholder="0.00"
+              />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="minStockLevel">Minimum Stock Level</Label>
+              <Label htmlFor="currentStock">Current Stock *</Label>
               <Input
-                id="minStockLevel"
+                id="currentStock"
                 type="number"
-                value={formData.minStockLevel}
-                onChange={(e) => setFormData({ ...formData, minStockLevel: e.target.value })}
+                step="1"
+                value={formData.currentStock}
+                onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
                 placeholder="0"
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Switch
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-              />
-              <Label htmlFor="isActive">Active</Label>
-            </div>
           </div>
 
           <DialogFooter>

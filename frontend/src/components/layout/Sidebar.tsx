@@ -15,6 +15,7 @@ import {
   Box,
   X,
   UserPlus,
+  ClipboardList  
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   { label: 'Invoices', path: '/invoices', icon: FileText },
   { label: 'Users', path: '/users', icon: Users, adminOnly: true },
   { label: 'Reports', path: '/reports', icon: BarChart3, adminOnly: true },
+  { label: 'Request', path: '/request', icon: ClipboardList   },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = false }) => {

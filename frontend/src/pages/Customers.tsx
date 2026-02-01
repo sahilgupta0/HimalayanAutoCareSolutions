@@ -36,20 +36,6 @@ interface Customer {
 const Customers: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
 
-
-  // Fetching Customers from backend can be implemented here
-
-  
-  // React.useEffect(() => {
-  //   const fetchCustomers = async () => {
-  //     const data = await getCustomersFromBackend();
-  //     setCustomers(data);
-  //   };
-  //   fetchCustomers();
-  // }, []);
-
-
-
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);

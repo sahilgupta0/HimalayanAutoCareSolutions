@@ -7,6 +7,8 @@ interface Customer {
   phoneNumber: string;
 }
 
+import { Product } from "../types/index";
+
 export const login = async (email: string, password: string) => {
     try{
         const payload = {
@@ -111,6 +113,49 @@ export const getCustomersFromBackend = async ()  => {
 
         const data = await response.json();
         console.log("Fetched customers in api frontend:", data);
+        return { success: true, data : data };
+    } catch (err) {
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }
+};
+
+export const createProduct = async ( product : any ) => {  
+    try{
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/product/createProduct`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(product),
+            }
+        )
+        if(!response.ok){
+            const errorData = await response.json();
+            return { success: false,  error: errorData?.message || 'Failed to create/update product' };
+        }
+        const data = await response.json();
+        return { success: true, data };
+    }
+    catch(err){
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }   
+}
+
+export const getProducts = async ()  => {
+    try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/product/products`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { success: false, error: errorData?.message || 'Failed to fetch products' };
+        }  
+        const data = await response.json();
+        console.log("Fetched products in api frontend:", data);
         return { success: true, data : data };
     } catch (err) {
         return { success: false, error: (err as Error).message || 'Network error' };
