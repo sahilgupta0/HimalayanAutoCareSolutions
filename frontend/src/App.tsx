@@ -11,7 +11,7 @@ import Login from "./pages/Login";
 import AccessDenied from "./pages/AccessDenied";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
-import Inventory from "./pages/Inventory";
+// import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Sales from "./pages/Sales";
 import Invoices from "./pages/Invoices";
@@ -60,14 +60,14 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
-              <Route
+              {/* <Route
                 path="/inventory"
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <Inventory />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route
                 path="/users"
                 element={

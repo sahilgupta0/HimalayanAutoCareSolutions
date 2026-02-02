@@ -6,6 +6,6 @@ import { createCustomerController , getCustomerController} from "../Controllers/
 const router = express.Router();
 
 router.post('/createCustomer', createCustomerController);
-router.get('/customers',getCustomerController);
+router.get('/getCustomer',getCustomerController);
 
 export default router;

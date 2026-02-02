@@ -57,7 +57,7 @@ export function DataTable<T extends { id: string }>({
     <div className={cn('space-y-4', className)}>
       {/* Search and Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="relative w-full sm:w-72">
+        {/* <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -65,7 +65,7 @@ export function DataTable<T extends { id: string }>({
             onChange={(e) => onSearch?.(e.target.value)}
             className="pl-9"
           />
-        </div>
+        </div> */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Show</span>
           <Select

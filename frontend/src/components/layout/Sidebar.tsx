@@ -37,13 +37,13 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { label: 'Products', path: '/products', icon: Package, adminOnly: true },
-  { label: 'Inventory', path: '/inventory', icon: Warehouse, adminOnly: true },
+  // { label: 'Inventory', path: '/inventory', icon: Warehouse, adminOnly: true },
   { label: 'Customers', path: '/customers', icon: UserPlus },
   { label: 'Sales', path: '/sales', icon: ShoppingCart },
   { label: 'Invoices', path: '/invoices', icon: FileText },
   { label: 'Users', path: '/users', icon: Users, adminOnly: true },
   { label: 'Reports', path: '/reports', icon: BarChart3, adminOnly: true },
-  { label: 'Request', path: '/request', icon: ClipboardList   },
+  { label: 'Request', path: '/request', icon: ClipboardList, adminOnly: false }
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = false }) => {
@@ -52,6 +52,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = fal
   
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
+  if(isAdmin){
+    filteredNavItems.pop();
+  }
   
   const handleNavClick = () => {
     if (isMobile) {

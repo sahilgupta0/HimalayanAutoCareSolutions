@@ -26,9 +26,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, Edit, KeyRound, UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { signup, userFetchAll } from '@/api/apiCall';
 
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<any[]>([]);
   const [searchValue, setSearchValue] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false);
@@ -40,13 +41,30 @@ const Users: React.FC = () => {
     name: '',
     email: '',
     role: 'sales' as UserRole,
-    isActive: true,
+    password : '',
+    // isActive: true,
   });
+
+  const fetchUsers = async () => {
+    try {
+      const response = await userFetchAll();
+      const normalizedUsers = response.data.map((user: any) => ({
+        ...user,
+        id: user._id || user.id, // Use MongoDB _id if available
+      }));
+      setUsers(normalizedUsers);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to fetch users', variant: 'destructive' });
+    }
+  };
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchValue.toLowerCase())
+      user.email && user.email.toLowerCase().includes(searchValue.toLowerCase())
   );
 
   const handleOpenDialog = (user?: User) => {
@@ -56,7 +74,8 @@ const Users: React.FC = () => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isActive: user.isActive,
+        password: user.password,
+        // isActive: user.isActive,
       });
     } else {
       setEditingUser(null);
@@ -64,14 +83,15 @@ const Users: React.FC = () => {
         name: '',
         email: '',
         role: 'sales',
-        isActive: true,
+        password: '',
+        // isActive: true,
       });
     }
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.email) {
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.email || !formData.password) {
       toast({ title: 'Error', description: 'Please fill in all required fields', variant: 'destructive' });
       return;
     }
@@ -93,30 +113,38 @@ const Users: React.FC = () => {
       );
       toast({ title: 'Success', description: 'User updated successfully' });
     } else {
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        isActive: formData.isActive,
-        createdAt: new Date().toISOString(),
-        avatar: formData.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-      };
-      setUsers([newUser, ...users]);
-      toast({ title: 'Success', description: 'User created successfully' });
+      try {
+        const result = await signup(formData.email, formData.password, formData.name, formData.role);
+        console.log('SignUp result:', result);
+  
+        if (result.success) {
+          // Use the user data returned from API with proper ID mapping
+          const newUserFromAPI = {
+            ...result.data,
+            id: result.data._id || result.data.id, // Normalize MongoDB _id to id
+          };
+          
+          setUsers([newUserFromAPI, ...users]);
+          toast({ title: 'Success!', description: 'User created successfully.' });
+        } else {
+          toast({ title: 'Creation failed', description: result.error, variant: 'destructive' });
+        }
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to create user', variant: 'destructive' });
+      }
     }
 
     setIsDialogOpen(false);
   };
 
-  const toggleUserStatus = (userId: string) => {
-    setUsers(
-      users.map((u) =>
-        u.id === userId ? { ...u, isActive: !u.isActive } : u
-      )
-    );
-    toast({ title: 'Success', description: 'User status updated' });
-  };
+  // const toggleUserStatus = (userId: string) => {
+  //   setUsers(
+  //     users.map((u) =>
+  //       u.id === userId ? { ...u, isActive: !u.isActive } : u
+  //     )
+  //   );
+  //   toast({ title: 'Success', description: 'User status updated' });
+  // };
 
   const handleResetPassword = () => {
     toast({ title: 'Success', description: 'Password reset link sent (mock)' });
@@ -151,45 +179,27 @@ const Users: React.FC = () => {
         </StatusBadge>
       ),
     },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (user: User) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={user.isActive}
-            onCheckedChange={() => toggleUserStatus(user.id)}
-          />
-          <span className="text-sm">{user.isActive ? 'Active' : 'Inactive'}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'createdAt',
-      header: 'Created',
-      render: (user: User) => format(new Date(user.createdAt), 'MMM dd, yyyy'),
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (user: User) => (
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(user)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setSelectedUserId(user.id);
-              setIsResetPasswordOpen(true);
-            }}
-          >
-            <KeyRound className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
+    // {
+    //   key: 'actions',
+    //   header: 'Actions',
+    //   render: (user: User) => (
+    //     <div className="flex items-center gap-2">
+    //       <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(user)}>
+    //         <Edit className="h-4 w-4" />
+    //       </Button>
+    //       <Button
+    //         variant="ghost"
+    //         size="icon"
+    //         onClick={() => {
+    //           setSelectedUserId(user.id);
+    //           setIsResetPasswordOpen(true);
+    //         }}
+    //       >
+    //         <KeyRound className="h-4 w-4" />
+    //       </Button>
+    //     </div>
+    //   ),
+    // },
   ];
 
   return (
@@ -250,6 +260,17 @@ const Users: React.FC = () => {
             </div>
 
             <div className="grid gap-2">
+              <Label htmlFor="password">Password *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="Enter password"
+              />
+            </div>
+
+            <div className="grid gap-2">
               <Label htmlFor="role">Role *</Label>
               <Select
                 value={formData.role}
@@ -263,15 +284,6 @@ const Users: React.FC = () => {
                   <SelectItem value="sales">Sales Staff</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Switch
-                id="isActive"
-                checked={formData.isActive}
-                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-              />
-              <Label htmlFor="isActive">Active</Label>
             </div>
           </div>
 

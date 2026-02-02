@@ -39,6 +39,22 @@ export const signupController = async (req, res) => {
     return res.status(201).json({message: 'User created successfully', newUser});
 }
 
+export const allUsersController = async (req, res) => {
+    try {
+        // console.log("Fetching all users");
+        const users = await User.find();
+        const filteredUsers = users.map(item => ({
+            _id: item._id,
+            name: item.name,
+            email: item.email,
+            role: item.role
+        }));
+        // console.log(filteredUsers);
+        return res.status(200).json(filteredUsers);
+    } catch (error) {
+        return res.status(500).json({ message: 'Error fetching users', error });
+    }
+}
 
 export const getSalesController = async (req, res) => {
     // Logic for fetching sales data

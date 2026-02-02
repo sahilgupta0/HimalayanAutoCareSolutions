@@ -1,6 +1,5 @@
 
-
-
+import Customer from '../Models/customerModel.js';
 
 export const createCustomerController = async (req, res) => {
     // Logic for creating a new customer

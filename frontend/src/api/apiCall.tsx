@@ -70,6 +70,29 @@ export const signup = async (email: string, password: string, name: string, role
     }
 }
 
+export const userFetchAll = async ()  => {
+    try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/user/fetchAllUsers`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        // console.log("Response from fetchAllUsers:", response);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { success: false, error: errorData?.message || 'Failed to fetch users' };
+        }
+
+        const data = await response.json();
+        console.log("Fetched users in api frontend:", data);
+        return { success: true, data : data };
+    } catch (err) {
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }
+};
+
 export const createCustomer = async ( customer : Customer ) => {  
     try{
         const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/user/createCustomer`, 
@@ -99,7 +122,7 @@ export const createCustomer = async ( customer : Customer ) => {
 
 export const getCustomersFromBackend = async ()  => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/user/customers`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/customer/getCustomer`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
