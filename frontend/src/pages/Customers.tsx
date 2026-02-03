@@ -132,7 +132,6 @@ const Customers: React.FC = () => {
   // console.log("Fetched Customers: ", customers);
 
   const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.phoneNumber.includes(searchTerm)

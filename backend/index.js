@@ -5,6 +5,7 @@ import connectDB from './Config/db.js';
 import user from './Routers/userRoute.js';
 import customer from './Routers/customerRoute.js';
 import product from './Routers/productRoute.js';
+import sales from './Routers/salesRoute.js';
 
 
 dotenv.config();
@@ -26,6 +27,7 @@ connectDB();
 app.use('/api/user', user);
 app.use('/api/customer', customer);
 app.use('/api/product', product);
+app.use('/api/sales', sales);
 
 
 

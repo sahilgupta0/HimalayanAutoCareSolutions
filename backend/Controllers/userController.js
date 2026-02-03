@@ -1,6 +1,5 @@
 import User from '../Models/userModel.js';
 
-import Sale from '../Models/salesModel.js';
 import jwt from 'jsonwebtoken';
 
 
@@ -56,33 +55,4 @@ export const allUsersController = async (req, res) => {
     }
 }
 
-export const getSalesController = async (req, res) => {
-    // Logic for fetching sales data
-    try {
-        const sales = await Sale.find();    
-        return res.status(200).json(sales);
-    } catch (error) {
-        return res.status(500).json({ message: 'Error fetching sales', error });
-    }
-}
-
-export const createSalesController = async (req, res) => {
-    // Logic for creating a new sales record
-    const { productName, quantity, subTotal, discount, totalPrice, customerId, salesPersonId } = req.body;
-    // Here you would typically save the sales record to the database
-    const newSale = new Sale({ productName, quantity, subTotal, discount, totalPrice, customerId, salesPersonId });
-    await newSale.save();
-    return res.status(201).json({ message: 'Sales record created successfully', newSale });
-}
-
-export const getPersonalSalesController = async (req, res) => {
-    // Logic for fetching personal sales data
-    const { salesPersonId } = req.query;
-    try {
-        const sales = await Sale.find({ salesPersonId });    
-        return res.status(200).json(sales);
-    } catch (error) {
-        return res.status(500).json({ message: 'Error fetching personal sales', error });
-    }   
-}  
 

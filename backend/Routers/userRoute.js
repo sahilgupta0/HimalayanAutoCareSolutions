@@ -1,6 +1,5 @@
 import express from 'express';
-import  {loginController, signupController, getSalesController, createSalesController, getPersonalSalesController, allUsersController}  from '../Controllers/userController.js';
-import { get } from 'mongoose';
+import  {loginController, signupController, allUsersController}  from '../Controllers/userController.js';
 
 
 const router = express.Router();
@@ -10,9 +9,5 @@ const router = express.Router();
 router.post('/login', loginController);
 router.post('/signup', signupController);
 router.get('/fetchAllUsers', allUsersController);
-
-router.get('/sales', getSalesController);
-router.post('/request',createSalesController);
-router.get('/requests',getPersonalSalesController);
 
 export default router;

@@ -33,10 +33,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 
-import { getCustomersFromBackend } from '@/api/apiCall';
+import { getCustomersFromBackend, getProductsFromBackend, addNewSalesRequest } from '@/api/apiCall';
 
 interface Customer {
-  id: string;
+  _id: string;
   name: string;
   businessName: string;
   panNumber: string;
@@ -45,7 +45,7 @@ interface Customer {
 }
 
 interface Product {
-  id: string;
+  _id: string;
   name: string;
   sellingPrice: number;
   currentStock: number;
@@ -60,99 +60,54 @@ interface CartItem {
 }
 
 interface SalesRequest {
-  id: string;
-  requestNumber: string;
-  customerInfo: Customer | null;
+  _id?: string;
+  saleDate: Date;
   items: CartItem[];
   subtotal: number;
   discount: number;
   total: number;
-  requestedBy: string;
-  requestedById: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  status: 'Pending' | 'Approved' | 'Cancelled';
+  customerId: string;
+  salesPersonId: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Mock Customer Data
-// const mockCustomers: Customer[] = [
-//   {
-//     id: '1',
-//     name: 'Raj Kumar',
-//     businessName: 'Kumar Trading Co.',
-//     panNumber: 'ABCDE1234F',
-//     area: 'Delhi',
-//     phoneNumber: '9876543210',
-//   },
-//   {
-//     id: '2',
-//     name: 'Priya Singh',
-//     businessName: 'Singh Enterprises',
-//     panNumber: 'FGHIJ5678K',
-//     area: 'Mumbai',
-//     phoneNumber: '9876543211',
-//   },
-//   {
-//     id: '3',
-//     name: 'Amit Patel',
-//     businessName: 'Patel Industries',
-//     panNumber: 'KLMNO9012P',
-//     area: 'Bangalore',
-//     phoneNumber: '9876543212',
-//   },
-//   {
-//     id: '4',
-//     name: 'Neha Sharma',
-//     businessName: 'Sharma Group',
-//     panNumber: 'QRSTU3456V',
-//     area: 'Hyderabad',
-//     phoneNumber: '9876543213',
-//   },
-// ];
-
-// Mock Product Data
-const mockProducts: Product[] = [
-  {
-    id: 'p1',
-    name: 'Himalayan Coolant 20L',
-    sellingPrice: 1200,
-    currentStock: 50,
-  },
-  {
-    id: 'p2',
-    name: 'Himalayan Coolant 50L',
-    sellingPrice: 2500,
-    currentStock: 30,
-  },
-  {
-    id: 'p3',
-    name: 'Himalayan Coolant 200L',
-    sellingPrice: 8000,
-    currentStock: 15,
-  },
-  {
-    id: 'p4',
-    name: 'Engine Oil Premium',
-    sellingPrice: 450,
-    currentStock: 100,
-  },
-];
 
 const Request: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
   // State Management
-  const [customers, setCustomers] = useState<Customer[]>([]);    
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [requests, setRequests] = useState<SalesRequest[]>([]);
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [selectedProductId, setSelectedProductId] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('1');
   const [customPrice, setCustomPrice] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [discount, setDiscount] = useState('0');
 
+
+  // Fetching the Products list from backend
+
+  const fetchProducts = async () => {
+    // Implementation for fetching products can be added here
+    const result = await getProductsFromBackend();
+    console.log("Products fetched: ", result.data);
+
+
+    if (result.success && result.data) {
+      // setProducts(result.data);
+      setProducts(result.data);
+
+    } else {
+      toast.error(result.error || "Failed to fetch products");
+    }
+  }
 
 
   // Get customers from backend
@@ -168,6 +123,7 @@ const Request: React.FC = () => {
 
   React.useEffect(() => {
     fetchCustomers();
+    fetchProducts();
   }, []);
 
   // Filter customers based on search
@@ -176,11 +132,11 @@ const Request: React.FC = () => {
     return customers.filter((customer) =>
       customer.name.toLowerCase().includes(customerSearch.toLowerCase())
     );
-  }, [customerSearch]);
+  }, [customerSearch, customers]);
 
   // Filter available products (not in cart)
-  const filteredAvailableProducts = mockProducts.filter(
-    (product) => !cart.find((item) => item.productId === product.id)
+  const filteredAvailableProducts = products.filter(
+    (product) => !cart.find((item) => item.productId === product._id)
   );
 
   const formatCurrency = (amount: number) => {
@@ -199,7 +155,7 @@ const Request: React.FC = () => {
 
   // Handle Add to Cart
   const handleAddToCart = () => {
-    if (!selectedProductId) {
+    if (!selectedProduct) {
       toast({
         title: 'Error',
         description: 'Please select a product',
@@ -208,7 +164,7 @@ const Request: React.FC = () => {
       return;
     }
 
-    if (!quantity || parseInt(quantity) <= 0) {
+    if (!quantity || parseInt(quantity) <= 0 || !Number.isInteger(Number(quantity))) {
       toast({
         title: 'Error',
         description: 'Please enter a valid quantity',
@@ -216,11 +172,16 @@ const Request: React.FC = () => {
       });
       return;
     }
+    if(parseInt(quantity) > selectedProduct.currentStock) {
+      toast({
+        title: 'Error',
+        description: `Quantity exceeds available stock (${selectedProduct.currentStock})`,
+        variant: 'destructive',
+      });
+      return;
+    }
 
-    const product = mockProducts.find((p) => p.id === selectedProductId);
-    if (!product) return;
-
-    const unitPrice = customPrice ? parseFloat(customPrice) : product.sellingPrice;
+    const unitPrice = customPrice ? parseFloat(customPrice) : selectedProduct.sellingPrice;
 
     if (isNaN(unitPrice) || unitPrice <= 0) {
       toast({
@@ -233,21 +194,21 @@ const Request: React.FC = () => {
 
     const qty = parseInt(quantity);
     const item: CartItem = {
-      productId: product.id,
-      productName: product.name,
+      productId: selectedProduct._id,
+      productName: selectedProduct.name,
       quantity: qty,
       unitPrice,
       total: qty * unitPrice,
     };
 
     setCart([...cart, item]);
-    setSelectedProductId('');
+    setSelectedProduct(null);
     setQuantity('1');
     setCustomPrice('');
 
     toast({
       title: 'Success',
-      description: `${product.name} added to cart`,
+      description: `${selectedProduct.name} added to cart`,
     });
   };
 
@@ -262,7 +223,7 @@ const Request: React.FC = () => {
   const total = subtotal - discountAmount;
 
   // Handle Submit Request
-  const handleSubmitRequest = () => {
+  const handleSubmitRequest = async () => {
     if (!selectedCustomer) {
       toast({
         title: 'Error',
@@ -282,23 +243,35 @@ const Request: React.FC = () => {
     }
 
     const newRequest: SalesRequest = {
-      id: Date.now().toString(),
-      requestNumber: `REQ-${new Date().getFullYear()}-${String(requests.length + 1).padStart(3, '0')}`,
-      customerInfo: selectedCustomer,
+      saleDate: new Date(),
       items: cart,
-      subtotal,
+      subtotal : subtotal,
       discount: discountAmount,
-      total,
-      requestedBy: user?.name || '',
-      requestedById: user?.id || '',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
+      total : total,
+      status: 'Pending',
+      customerId: selectedCustomer?._id || '',
+      salesPersonId: user.id || '',
     };
+
+    console.log("New Request: ", newRequest);
+
+
+    const response = await addNewSalesRequest(newRequest);
+
+    if (!response.success) {
+      toast({
+        title: 'Error',
+        description: response.error || 'Failed to create request',
+        variant: 'destructive',
+      });
+      return;
+    }
+
 
     setRequests([newRequest, ...requests]);
     toast({
       title: 'Success',
-      description: `Request created - ${newRequest.requestNumber}`,
+      description: `Request created - ${newRequest.items.length} items totaling ${formatCurrency(newRequest.total)}`,
     });
 
     // Reset form
@@ -308,9 +281,7 @@ const Request: React.FC = () => {
     setDiscount('0');
     setIsNewRequestOpen(false);
   };
-
-  const selectedProduct = mockProducts.find((p) => p.id === selectedProductId);
-
+  console.log("selectedProduct:", selectedProduct);
   return (
     <div className="space-y-6 animate-slide-in">
       {/* Header */}
@@ -331,16 +302,16 @@ const Request: React.FC = () => {
       {/* Requests List */}
       {requests.length > 0 && (
         <div className="space-y-4">
-          {requests.map((request) => (
-            <Card key={request.id}>
+          {requests.map((request, index) => (
+            <Card key={request._id || `request-${index}`}>
               <CardHeader className="pb-3">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
                     <CardTitle className="text-lg">
-                      {request.requestNumber}
+                      Request #{requests.indexOf(request) + 1}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(request.createdAt), 'MMM dd, yyyy HH:mm')}
+                      {request.createdAt ? format(new Date(request.createdAt), 'MMM dd, yyyy HH:mm') : format(new Date(request.saleDate), 'MMM dd, yyyy HH:mm')}
                     </p>
                   </div>
                   <div
@@ -384,9 +355,9 @@ const Request: React.FC = () => {
                 <div className="border-t pt-4">
                   <p className="text-sm font-medium mb-2">Items: {request.items.length}</p>
                   <div className="space-y-2">
-                    {request.items.map((item, idx) => (
+                    {request.items.map((item) => (
                       <div
-                        key={idx}
+                        key={item.productId}
                         className="flex justify-between text-sm text-muted-foreground"
                       >
                         <span>
@@ -458,10 +429,10 @@ const Request: React.FC = () => {
                 <div className="border rounded-lg bg-background max-h-48 overflow-y-auto">
                   {filteredCustomers.map((customer) => (
                     <button
-                      key={customer.id}
+                      key={customer._id}
                       onClick={() => handleSelectCustomer(customer)}
                       className={`w-full p-3 text-left hover:bg-accent border-b last:border-0 transition-colors ${
-                        selectedCustomer?.id === customer.id ? 'bg-accent' : ''
+                        selectedCustomer?._id === customer._id ? 'bg-accent' : ''
                       }`}
                     >
                       <p className="font-medium text-sm">{customer.name}</p>
@@ -545,15 +516,18 @@ const Request: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="product">Product Name</Label>
                     <Select
-                      value={selectedProductId}
-                      onValueChange={setSelectedProductId}
+                      value={selectedProduct?._id || ''}
+                      onValueChange={(id) => {
+                        const product = products.find((p) => p._id === id);
+                        setSelectedProduct(product || null);
+                      }}
                     >
                       <SelectTrigger id="product">
                         <SelectValue placeholder="Select a product" />
                       </SelectTrigger>
                       <SelectContent>
                         {filteredAvailableProducts.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
+                          <SelectItem key={product._id} value={product._id}>
                             {product.name}
                           </SelectItem>
                         ))}
@@ -597,7 +571,7 @@ const Request: React.FC = () => {
                     <Button
                       onClick={handleAddToCart}
                       className="w-full"
-                      disabled={!selectedProductId}
+                      disabled={!selectedProduct}
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Add to Cart

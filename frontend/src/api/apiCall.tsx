@@ -95,7 +95,7 @@ export const userFetchAll = async ()  => {
 
 export const createCustomer = async ( customer : Customer ) => {  
     try{
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/user/createCustomer`, 
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/customer/createCustomer`, 
             {
                 method: 'POST',
                 headers: {
@@ -137,6 +137,48 @@ export const getCustomersFromBackend = async ()  => {
         const data = await response.json();
         console.log("Fetched customers in api frontend:", data);
         return { success: true, data : data };
+    } catch (err) {
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }
+};
+
+export const getProductsFromBackend = async ()  => {
+    try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/product/products`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { success: false, error: errorData?.message || 'Failed to fetch products' };
+        }
+        const data = await response.json();
+        return { success: true, data : data };
+    }
+    catch (err) {
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }
+};
+
+export const addNewSalesRequest = async ( salesRequest : any ) => {  
+    try{
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/sales/createSale`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(salesRequest),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { success: false, error: errorData?.message || 'Failed to create sales request' };
+        }
+
+        const data = await response.json();
+        return { success: true, data };
     } catch (err) {
         return { success: false, error: (err as Error).message || 'Network error' };
     }
