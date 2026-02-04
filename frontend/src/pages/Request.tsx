@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 
-import { getCustomersFromBackend, getProductsFromBackend, addNewSalesRequest } from '@/api/apiCall';
+import { getCustomersFromBackend, addNewSalesRequest, getMyRequestsFromBackend, getProducts } from '@/api/apiCall';
 
 interface Customer {
   _id: string;
@@ -96,8 +96,7 @@ const Request: React.FC = () => {
 
   const fetchProducts = async () => {
     // Implementation for fetching products can be added here
-    const result = await getProductsFromBackend();
-    console.log("Products fetched: ", result.data);
+    const result = await getProducts();
 
 
     if (result.success && result.data) {
@@ -105,7 +104,34 @@ const Request: React.FC = () => {
       setProducts(result.data);
 
     } else {
-      toast.error(result.error || "Failed to fetch products");
+      toast({
+        title: 'Error',
+        description: result.error || 'Failed to fetch products',
+        variant: 'destructive',
+      });
+    }
+  }
+
+  const fetchMyRequests = async () => {
+    if ( !user) {
+      toast({
+        title: 'Error',
+        description: 'User not logged in',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const result = await getMyRequestsFromBackend(user.id);
+    if (result.success && result.data) {
+      setRequests(result.data);
+    }
+    else {
+      toast({
+        title: 'Error',
+        description: result.error || 'Failed to fetch requests',
+        variant: 'destructive',
+      });
     }
   }
 
@@ -124,6 +150,7 @@ const Request: React.FC = () => {
   React.useEffect(() => {
     fetchCustomers();
     fetchProducts();
+    fetchMyRequests();
   }, []);
 
   // Filter customers based on search
@@ -253,8 +280,6 @@ const Request: React.FC = () => {
       salesPersonId: user.id || '',
     };
 
-    console.log("New Request: ", newRequest);
-
 
     const response = await addNewSalesRequest(newRequest);
 
@@ -266,9 +291,8 @@ const Request: React.FC = () => {
       });
       return;
     }
-
-
-    setRequests([newRequest, ...requests]);
+    // Refresh requests list
+    fetchMyRequests();
     toast({
       title: 'Success',
       description: `Request created - ${newRequest.items.length} items totaling ${formatCurrency(newRequest.total)}`,
@@ -281,7 +305,6 @@ const Request: React.FC = () => {
     setDiscount('0');
     setIsNewRequestOpen(false);
   };
-  console.log("selectedProduct:", selectedProduct);
   return (
     <div className="space-y-6 animate-slide-in">
       {/* Header */}
@@ -334,10 +357,10 @@ const Request: React.FC = () => {
                     <User className="h-4 w-4 text-muted-foreground mt-1" />
                     <div>
                       <p className="text-sm font-medium">
-                        {request.customerInfo?.name}
+                        {request.customerId?.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {request.customerInfo?.businessName}
+                        {request.customerId?.businessName}
                       </p>
                     </div>
                   </div>
@@ -345,7 +368,7 @@ const Request: React.FC = () => {
                     <Phone className="h-4 w-4 text-muted-foreground mt-1" />
                     <div>
                       <p className="text-sm font-medium">
-                        {request.customerInfo?.phoneNumber}
+                        {request.customerId?.phoneNumber}
                       </p>
                       <p className="text-xs text-muted-foreground">Phone</p>
                     </div>
@@ -367,6 +390,12 @@ const Request: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                  {request.discount > 0 && (
+                    <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                      <span>Discount Applied</span>
+                      <span>-{formatCurrency(request.discount)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t pt-4">

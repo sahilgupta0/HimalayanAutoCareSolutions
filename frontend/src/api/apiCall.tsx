@@ -7,8 +7,6 @@ interface Customer {
   phoneNumber: string;
 }
 
-import { Product } from "../types/index";
-
 export const login = async (email: string, password: string) => {
     try{
         const payload = {
@@ -135,16 +133,15 @@ export const getCustomersFromBackend = async ()  => {
         }
 
         const data = await response.json();
-        console.log("Fetched customers in api frontend:", data);
         return { success: true, data : data };
     } catch (err) {
         return { success: false, error: (err as Error).message || 'Network error' };
     }
 };
 
-export const getProductsFromBackend = async ()  => {
+export const getMyRequestsFromBackend = async ( salesPersonId : string )  => {
     try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/product/products`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/sales/personal-sales/${salesPersonId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -152,12 +149,11 @@ export const getProductsFromBackend = async ()  => {
         });
         if (!response.ok) {
             const errorData = await response.json();
-            return { success: false, error: errorData?.message || 'Failed to fetch products' };
+            return { success: false, error: errorData?.message || 'Failed to fetch sales requests' };
         }
         const data = await response.json();
         return { success: true, data : data };
-    }
-    catch (err) {
+    } catch (err) {
         return { success: false, error: (err as Error).message || 'Network error' };
     }
 };
@@ -182,6 +178,27 @@ export const addNewSalesRequest = async ( salesRequest : any ) => {
     } catch (err) {
         return { success: false, error: (err as Error).message || 'Network error' };
     }
+};
+
+export const getAllSales = async ()  => {
+    try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/sales/all-sales`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { success: false, error: errorData?.message || 'Failed to fetch sales' };
+        }
+        const data = await response.json();
+        console.log("Fetched sales in api frontend:", data);
+        return { success: true, data : data };
+    }
+    catch (err) {
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }  
 };
 
 export const createProduct = async ( product : any ) => {  
@@ -220,7 +237,6 @@ export const getProducts = async ()  => {
             return { success: false, error: errorData?.message || 'Failed to fetch products' };
         }  
         const data = await response.json();
-        console.log("Fetched products in api frontend:", data);
         return { success: true, data : data };
     } catch (err) {
         return { success: false, error: (err as Error).message || 'Network error' };

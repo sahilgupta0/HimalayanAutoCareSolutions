@@ -37,7 +37,7 @@ interface DataTableProps<T> {
   className?: string;
 }
 
-export function DataTable<T extends { id: string }>({
+export function DataTable<T extends { id?: string; _id?: string }>({
   data,
   columns,
   searchPlaceholder = 'Search...',
@@ -53,11 +53,15 @@ export function DataTable<T extends { id: string }>({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
 
+  const getItemKey = (item: T, index: number): string => {
+    return (item as any).id || (item as any)._id || `row-${index}`;
+  };
+
   return (
     <div className={cn('space-y-4', className)}>
       {/* Search and Controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        {/* <div className="relative w-full sm:w-72">
+        <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={searchPlaceholder}
@@ -65,7 +69,7 @@ export function DataTable<T extends { id: string }>({
             onChange={(e) => onSearch?.(e.target.value)}
             className="pl-9"
           />
-        </div> */}
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Show</span>
           <Select
@@ -109,10 +113,10 @@ export function DataTable<T extends { id: string }>({
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedData.map((item) => (
-                <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
+              paginatedData.map((item, index) => (
+                <TableRow key={getItemKey(item, index)} className="hover:bg-muted/30 transition-colors">
                   {columns.map((column) => (
-                    <TableCell key={column.key} className={column.className}>
+                    <TableCell key={`${getItemKey(item, index)}-${column.key}`} className={column.className}>
                       {column.render
                         ? column.render(item)
                         : (item[column.key as keyof T] as React.ReactNode)}

@@ -54,7 +54,7 @@ export interface Sale {
   customerInfo?: CustomerInfo;
   salesPersonId: string;
   salesPersonName: string;
-  status: 'completed' | 'pending' | 'cancelled';
+  status: 'Completed' | 'Pending' | 'Cancelled';
   createdAt: string;
 }
 

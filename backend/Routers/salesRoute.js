@@ -9,6 +9,7 @@ router.get('/all-sales', getAllSalesController);
 
 router.post('/createSale',createSalesController);
 
-router.get('/personal-sales', getPersonalSalesController);
+router.get('/personal-sales/:salesPersonId', getPersonalSalesController);
+
 
 export default router;
