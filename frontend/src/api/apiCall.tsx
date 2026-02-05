@@ -201,6 +201,25 @@ export const getAllSales = async ()  => {
     }  
 };
 
+export const acceptSale = async ( saleId : string ) => {
+    try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/sales/accept-sale/${saleId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }); 
+        if (!response.ok) {
+            const errorData = await response.json();
+            return { success: false, error: errorData?.message || 'Failed to accept sale' };
+        }
+        const data = await response.json();
+        return { success: true, data };
+    } catch (err) {
+        return { success: false, error: (err as Error).message || 'Network error' };
+    }
+};
+
 export const createProduct = async ( product : any ) => {  
     try{
         const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/product/createProduct`,

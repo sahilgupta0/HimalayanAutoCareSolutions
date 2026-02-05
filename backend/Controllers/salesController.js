@@ -1,4 +1,5 @@
 import Sale from "../Models/salesModel.js";   
+import Product from "../Models/productModel.js";
 
 
 export const getAllSalesController = async (req, res) => {
@@ -31,6 +32,50 @@ export const createSalesController = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: 'Error creating sales record', error });
     }
+}
+
+const getAvailableStock = async (productId, quantity    ) => {
+    const product = await Product.findById(productId);
+
+    if(product){
+        if(product.currentStock >= quantity){
+            product.currentStock -= quantity;
+            await product.save();
+        }
+    }
+    return product ? product.currentStock : 0;
+}
+
+export const acceptSaleController = async (req, res) => {
+    const { saleId } = req.params;
+    try {
+        const sale = await Sale.findById(saleId);
+       if (!sale) {
+            return res.status(404).json({ message: 'Sale not found' });
+        }
+
+        let haveAllItems = true;
+
+        for (const item of sale.items) {
+            const availableStock = await getAvailableStock(item.productId, item.quantity); 
+            if (availableStock < item.quantity) {
+                haveAllItems = false;
+                console.log(`Insufficient stock for product ${item.productId}. Available: ${availableStock}, Required: ${item.quantity}`);
+                break;
+            }
+        
+        }
+        
+        if (!haveAllItems) {
+            return res.status(400).json({ message: 'Insufficient stock for one or more items' });
+        }
+
+        sale.status = 'Completed';
+        await sale.save();
+        return res.status(200).json({ message: 'Sale accepted successfully', sale });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error accepting sale', error });
+    }   
 }
 
 export const getPersonalSalesController = async (req, res) => {

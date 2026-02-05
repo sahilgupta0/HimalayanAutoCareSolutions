@@ -16,7 +16,7 @@ import {  Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { getAllSales } from '@/api/apiCall';
+import { getAllSales, acceptSale } from '@/api/apiCall';
 
 const Sales: React.FC = () => {
   const { user, isAdmin } = useAuth();
@@ -109,7 +109,7 @@ const Sales: React.FC = () => {
       key: 'status',
       header: 'Status',
       render: (sale: Sale) => (
-        <StatusBadge status={sale.status === 'Approved' ? 'success' : sale.status === 'Pending' ? 'warning' : 'error'}>
+        <StatusBadge status={sale.status === 'Completed' ? 'success' : sale.status === 'Pending' ? 'warning' : 'error'}>
           {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
         </StatusBadge>
       ),
@@ -125,6 +125,27 @@ const Sales: React.FC = () => {
       ),
     },
   ];
+
+  const handleApproveSale = async (saleId: string) => {
+
+    const res = await acceptSale(saleId);
+    if (res.success) {
+      toast({
+        title: 'Success',
+        description: 'Sale approved successfully',
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: res.error || 'Failed to approve sale',
+        variant: 'destructive',
+      });
+    }
+    setSelectedSale(null);  
+    fetchSales();
+    
+  
+  };
 
 
 
@@ -243,14 +264,7 @@ const Sales: React.FC = () => {
             {user?.role === 'admin' && selectedSale?.status === 'Pending' && (
               <Button
                 className="bg-green-100 text-green-900 hover:bg-green-700"
-                onClick={async () => {
-                  // Approve sale logic here
-                  toast({
-                    title: 'Success',
-                    description: 'Sale approved successfully',
-                  });
-                  setSelectedSale(null);
-                }}
+                onClick={() => handleApproveSale(selectedSale._id!)}
               >
                 Approve Sale
               </Button>
