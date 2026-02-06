@@ -1,5 +1,6 @@
 import Sale from "../Models/salesModel.js";   
 import Product from "../Models/productModel.js";
+import e from "express";
 
 
 export const getAllSalesController = async (req, res) => {
@@ -18,6 +19,7 @@ export const createSalesController = async (req, res) => {
     const { items, subtotal, discount, total, customerId, salesPersonId } = req.body;
     try {
         const newSale = new Sale({
+            saleDate: new Date(), // Explicitly set current server time in UTC
             items,
             subtotal,
             discount,
@@ -76,6 +78,24 @@ export const acceptSaleController = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ message: 'Error accepting sale', error });
     }   
+}
+
+export const rejectSalseController = async (req, res) => {
+    const { saleId } = req.params;
+    console.log(`Received request to reject sale with saleId: ${saleId}`);
+    try {
+        const sale = await Sale.findById(saleId);
+         if (!sale) {
+            return res.status(404).json({ message: 'Sale not found' });
+        }
+        console.log(`Rejecting sale with saleId: ${saleId}`, sale); 
+        sale.status = 'Cancelled';
+        await sale.save();
+        return res.status(200).json({ message: 'Sale rejected successfully', sale });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error rejecting sale', error });
+    }
+
 }
 
 export const getPersonalSalesController = async (req, res) => {

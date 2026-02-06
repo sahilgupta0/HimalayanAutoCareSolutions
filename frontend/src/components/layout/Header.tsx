@@ -37,7 +37,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </Button>
 
       {/* Search */}
-      <div className="flex-1 max-w-md hidden sm:block">
+      {/* <div className="flex-1 max-w-md hidden sm:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -47,10 +47,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         </div>
       </div>
 
-      <div className="flex-1 lg:hidden" />
+      <div className="flex-1 lg:hidden" /> */}
 
       {/* Notifications */}
-      <DropdownMenu>
+      {/* <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
@@ -88,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             View all notifications
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
     </header>
   );
 };

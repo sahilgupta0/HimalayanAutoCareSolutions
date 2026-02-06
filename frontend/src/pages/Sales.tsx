@@ -16,7 +16,7 @@ import {  Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { getAllSales, acceptSale } from '@/api/apiCall';
+import { getAllSales, acceptSale, rejectSale } from '@/api/apiCall';
 
 const Sales: React.FC = () => {
   const { user, isAdmin } = useAuth();
@@ -58,8 +58,8 @@ const Sales: React.FC = () => {
       
       const result = await getAllSales();
       if (result.success && result.data) {
-        
-        setSales(result.data);
+        const reverseSales = [...result.data].reverse(); // Reverse the order to show latest sales first
+        setSales(reverseSales);
       }
       else {
         toast({
@@ -84,9 +84,9 @@ const Sales: React.FC = () => {
       render: (sale: Sale) => format(new Date(sale.createdAt), 'MMM dd, yyyy HH:mm'),
     },
     {
-      key: 'customerName',
-      header: 'Customer',
-      render: (sale: Sale) => sale.customerId?.name || 'Walk-in Customer',
+      key: 'BussinessName',
+      header: 'Bussiness Name',
+      render: (sale: Sale) => sale.customerId?.businessName || 'Walk-in Customer',
     },
     {
       key: 'items',
@@ -133,6 +133,7 @@ const Sales: React.FC = () => {
       toast({
         title: 'Success',
         description: 'Sale approved successfully',
+        className: 'bg-green-50 border-green-200 text-green-900',
       });
     } else {
       toast({
@@ -145,6 +146,27 @@ const Sales: React.FC = () => {
     fetchSales();
     
   
+  };
+
+  const handleRejection = async (saleId: string) => {
+    
+    // Implement rejection logic here (e.g., API call to reject the sale)
+    const res = await rejectSale(saleId);
+    if (res.success) {
+      toast({
+        title: 'Success',
+        description: 'Sale rejected successfully',
+        className: 'bg-red-50 border-red-200 text-red-900',
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: res.error || 'Failed to reject sale',
+        variant: 'destructive',
+      });
+    }
+    setSelectedSale(null);  
+    fetchSales();
   };
 
 
@@ -258,16 +280,25 @@ const Sales: React.FC = () => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedSale(null)}>
+            <Button variant="outline" className="bg-amber-100 text-red-900 hover:bg-amber-400 hover:text-white" onClick={() => setSelectedSale(null)}>
               Close
             </Button>
-            {user?.role === 'admin' && selectedSale?.status === 'Pending' && (
-              <Button
-                className="bg-green-100 text-green-900 hover:bg-green-700"
-                onClick={() => handleApproveSale(selectedSale._id!)}
-              >
-                Approve Sale
-              </Button>
+            {user?.role === 'admin' && selectedSale?.status === 'Pending' && (  
+              <>
+                <Button
+                  className="bg-red-100 text-red-900 hover:bg-red-700 hover:text-white"
+                  onClick={() => handleRejection(selectedSale._id!)}
+                  >
+                  Reject Sale
+                </Button>
+                
+                <Button
+                  className="bg-green-100 text-green-900 hover:bg-green-700 hover:text-white"
+                  onClick={() => handleApproveSale(selectedSale._id!)}
+                  >
+                  Approve Sale
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>

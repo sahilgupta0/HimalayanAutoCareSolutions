@@ -6,6 +6,7 @@ const customerSchema = new mongoose.Schema({
     businessName: { type: String, required: true },
     panNumber: { type: String, required: true },
     area: { type: String, required: true },
+    district: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
 

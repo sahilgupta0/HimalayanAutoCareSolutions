@@ -9,14 +9,14 @@ import MainLayout from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import AccessDenied from "./pages/AccessDenied";
-import Dashboard from "./pages/Dashboard";
+// import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 // import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Sales from "./pages/Sales";
-import Invoices from "./pages/Invoices";
+// import Invoices from "./pages/Invoices";
 import Users from "./pages/Users";
-import Reports from "./pages/Reports";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import Request from "./pages/Request";
@@ -48,7 +48,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/customers" element={<Customers />} />
               <Route path="/sales" element={<Sales />} />
-              <Route path="/invoices" element={<Invoices />} />
+              {/* <Route path="/invoices" element={<Invoices />} /> */}
               <Route path="/request" element={<Request />} />
               
               {/* Admin Only Routes */}
@@ -73,14 +73,6 @@ const App = () => (
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <Users />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Reports />
                   </ProtectedRoute>
                 }
               />

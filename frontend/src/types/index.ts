@@ -1,16 +1,26 @@
 export type UserRole = 'admin' | 'sales';
 
 export interface User {
+  id?: string;
   email: string;
   name: string;
   password: string;
   role: UserRole;
+  avatar?: string;
 }
 
 export interface Product {
+  id?: string;
   name: string;
+  sku?: string;
+  category?: string;
   sellingPrice: number;
+  costPrice?: number;
   currentStock: number;
+  minStockLevel?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface StockHistory {
@@ -43,19 +53,15 @@ export interface CustomerInfo {
 }
 
 export interface Sale {
-  id: string;
-  invoiceNumber: string;
+  id: Date | string;
+  salesDate: string;
   items: SaleItem[];
   subtotal: number;
   discount: number;
   total: number;
   customerId?: string;
-  customerName?: string;
-  customerInfo?: CustomerInfo;
   salesPersonId: string;
-  salesPersonName: string;
   status: 'Completed' | 'Pending' | 'Cancelled';
-  createdAt: string;
 }
 
 export interface DashboardStats {

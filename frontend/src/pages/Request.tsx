@@ -61,7 +61,7 @@ interface CartItem {
 
 interface SalesRequest {
   _id?: string;
-  saleDate: Date;
+  saleDate?: Date;
   items: CartItem[];
   subtotal: number;
   discount: number;
@@ -270,7 +270,6 @@ const Request: React.FC = () => {
     }
 
     const newRequest: SalesRequest = {
-      saleDate: new Date(),
       items: cart,
       subtotal : subtotal,
       discount: discountAmount,
@@ -339,9 +338,9 @@ const Request: React.FC = () => {
                   </div>
                   <div
                     className={`px-3 py-1 rounded-full text-sm font-medium w-fit ${
-                      request.status === 'pending'
+                      request.status === 'Pending'
                         ? 'bg-yellow-100 text-yellow-800'
-                        : request.status === 'approved'
+                        : request.status === 'Completed'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                     }`}

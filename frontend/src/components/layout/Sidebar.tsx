@@ -40,10 +40,10 @@ const navItems: NavItem[] = [
   // { label: 'Inventory', path: '/inventory', icon: Warehouse, adminOnly: true },
   { label: 'Customers', path: '/customers', icon: UserPlus },
   { label: 'Sales', path: '/sales', icon: ShoppingCart },
-  { label: 'Invoices', path: '/invoices', icon: FileText },
+  // { label: 'Invoices', path: '/invoices', icon: FileText },
   { label: 'Users', path: '/users', icon: Users, adminOnly: true },
-  { label: 'Reports', path: '/reports', icon: BarChart3, adminOnly: true },
-  { label: 'Request', path: '/request', icon: ClipboardList, adminOnly: false }
+  // { label: 'Reports', path: '/reports', icon: BarChart3, adminOnly: true },
+  { label: 'Requests', path: '/request', icon: ClipboardList }
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = false }) => {
@@ -52,8 +52,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = fal
   
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
-  if(isAdmin){
-    filteredNavItems.pop();
+  if (isAdmin) {
+    filteredNavItems.pop(); // Remove the last item (Requests) for admin users
   }
   
   const handleNavClick = () => {
