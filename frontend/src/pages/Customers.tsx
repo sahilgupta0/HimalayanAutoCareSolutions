@@ -65,6 +65,11 @@ const Customers: React.FC = () => {
       return;
     }
 
+    if(phoneNumber.trim().length < 10){
+      toast.error('Phone number must be at least 10 digits');
+      return;
+    }
+
     const newCustomer = {
       name: name.trim(),
       businessName: businessName.trim(),
