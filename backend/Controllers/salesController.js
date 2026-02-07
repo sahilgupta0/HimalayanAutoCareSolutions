@@ -16,15 +16,19 @@ export const getAllSalesController = async (req, res) => {
 
 export const createSalesController = async (req, res) => {
     // Logic for creating a new sales record
-    const { items, total, customerId, salesPersonId } = req.body;
+    const { items, total, bill, customerId, salesPersonId } = req.body;
+
     try {
         const newSale = new Sale({
             saleDate: new Date(), // Explicitly set current server time in UTC
             items,
             total,
+            bill,
             customerId,
             salesPersonId
         });
+        console.log("salespersonId in createSalesController:", salesPersonId); 
+        console.log("Creating new sale with data:", newSale);
 
         await newSale.save();
         return res.status(201).json({ message: 'Sales record created successfully', newSale });

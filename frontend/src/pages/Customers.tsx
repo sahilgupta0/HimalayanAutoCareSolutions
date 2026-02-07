@@ -41,6 +41,8 @@ const Customers: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -79,7 +81,9 @@ const Customers: React.FC = () => {
       phoneNumber: phoneNumber.trim()
     };
 
+    setIsCreating(true);
     const result = await createCustomer(newCustomer);
+    setIsCreating(false);
     
     if(!result.success){
       toast.error(result.error || 'Failed to create customer');
@@ -107,7 +111,9 @@ const Customers: React.FC = () => {
       phoneNumber: phoneNumber.trim()
     };
 
+    setIsUpdating(true);
     const response = await updateCustomer(dataToUpdate);
+    setIsUpdating(false);
 
     if(!response.success){
       toast.error(response.error || 'Failed to update customer');
@@ -250,10 +256,12 @@ const Customers: React.FC = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isCreating}>
                 Cancel
               </Button>
-              <Button onClick={handleAddCustomer}>Add Customer</Button>
+              <Button onClick={handleAddCustomer} disabled={isCreating}>
+                {isCreating ? 'Creating...' : 'Add Customer'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -453,10 +461,12 @@ const Customers: React.FC = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button onClick={handleEditCustomer}>Save Changes</Button>
+            <Button onClick={handleEditCustomer} disabled={isUpdating}>
+              {isUpdating ? 'Saving...' : 'Save Changes'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,7 +1,7 @@
 export type UserRole = 'admin' | 'sales';
 
 export interface User {
-  id?: string;
+  _id?: string;
   email: string;
   name: string;
   password: string;
@@ -53,8 +53,9 @@ export interface CustomerInfo {
 }
 
 export interface Sale {
-  id: Date | string;
+  _id: Date | string;
   salesDate: string;
+  bill: boolean;
   items: SaleItem[];
   total: number;
   customerId?: string;

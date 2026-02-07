@@ -197,6 +197,7 @@ export const getMyRequestsFromBackend = async ( salesPersonId : string )  => {
 };
 
 export const addNewSalesRequest = async ( salesRequest : any ) => {  
+    console.log("API Call - Adding new sales request:", salesRequest);
     try{
         const response = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/sales/createSale`, {
             method: 'POST',

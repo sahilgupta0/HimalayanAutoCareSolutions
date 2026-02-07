@@ -15,6 +15,7 @@ const salesSchema = new mongoose.Schema({
     ],
     total: { type: Number, required: true },
     status : { type: String, enum: ['Pending', 'Completed', 'Cancelled'], default: 'Pending' },
+    bill : { type : Boolean, default : true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
     salesPersonId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true })

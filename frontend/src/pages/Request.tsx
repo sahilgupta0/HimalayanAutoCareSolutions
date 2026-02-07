@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import {
@@ -64,7 +64,8 @@ interface SalesRequest {
   saleDate?: Date;
   items: CartItem[];
   total: number;
-  status: 'Pending' | 'Approved' | 'Cancelled';
+  status: 'Pending' | 'Completed' | 'Cancelled';
+  bill: boolean;
   customerId: string;
   salesPersonId: string;
   createdAt?: string;
@@ -86,7 +87,9 @@ const Request: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('1');
   const [customPrice, setCustomPrice] = useState('');
+  const [bill, setBill] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   // Fetching the Products list from backend
@@ -141,7 +144,11 @@ const Request: React.FC = () => {
     if (result.success && result.data) {
       setCustomers(result.data);
     } else {
-      toast.error(result.error || "Failed to fetch customers");
+      toast({
+        title: 'Error',
+        description: result.error || 'Failed to fetch customers',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -245,6 +252,10 @@ const Request: React.FC = () => {
   // Calculate Total
   const total = cart.reduce((sum, item) => sum + item.total, 0);
 
+  useEffect(() => {
+    console.log("bill type changed", bill);
+  }, [bill]);
+
   // Handle Submit Request
   const handleSubmitRequest = async () => {
     if (!selectedCustomer) {
@@ -264,17 +275,22 @@ const Request: React.FC = () => {
       });
       return;
     }
+    
 
     const newRequest: SalesRequest = {
       items: cart,
+      bill: bill,
       total : total,
       status: 'Pending',
       customerId: selectedCustomer?._id || '',
-      salesPersonId: user.id || '',
+      salesPersonId: user.id,
     };
 
+    console.log("Submitting request:", newRequest);
 
+    setIsSubmitting(true);
     const response = await addNewSalesRequest(newRequest);
+    setIsSubmitting(false);
 
     if (!response.success) {
       toast({
@@ -333,7 +349,7 @@ const Request: React.FC = () => {
                     className={`px-3 py-1 rounded-full text-sm font-medium w-fit ${
                       request.status === 'Pending'
                         ? 'bg-yellow-100 text-yellow-800'
-                        : request.status === 'Approved'
+                        : request.status === 'Completed'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                     }`}
@@ -643,6 +659,22 @@ const Request: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="bill">Bill Status</Label>
+                    <Select
+                      value={bill ? 'true' : 'false'}
+                      onValueChange={(value) => setBill(value === 'true')}
+                    >
+                      <SelectTrigger id="bill">
+                        <SelectValue placeholder="Select bill status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Bill</SelectItem>
+                        <SelectItem value="false">No Bill</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
               </div>
             )}
           </div>
@@ -652,16 +684,17 @@ const Request: React.FC = () => {
               variant="outline"
               onClick={() => setIsNewRequestOpen(false)}
               className="w-full sm:w-auto"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmitRequest}
-              disabled={!selectedCustomer || cart.length === 0}
+              disabled={!selectedCustomer || cart.length === 0 || isSubmitting}
               className="w-full sm:w-auto"
             >
               <Send className="mr-2 h-4 w-4" />
-              Submit Request
+              {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </Button>
           </DialogFooter>
         </DialogContent>

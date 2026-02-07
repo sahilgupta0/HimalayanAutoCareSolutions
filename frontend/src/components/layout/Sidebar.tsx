@@ -4,11 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard,
   Package,
-  Warehouse,
   ShoppingCart,
-  FileText,
   Users,
-  BarChart3,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -42,7 +39,8 @@ const navItems: NavItem[] = [
   // { label: 'Invoices', path: '/invoices', icon: FileText },
   { label: 'Users', path: '/users', icon: Users, adminOnly: true },
   // { label: 'Reports', path: '/reports', icon: BarChart3, adminOnly: true },
-  { label: 'Requests', path: '/request', icon: ClipboardList }
+  { label: 'Requests', path: '/request', icon: ClipboardList },
+  
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = false }) => {

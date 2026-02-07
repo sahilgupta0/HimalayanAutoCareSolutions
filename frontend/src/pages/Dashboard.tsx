@@ -25,18 +25,13 @@ import {
 import StatusBadge from '@/components/ui/status-badge';
 import {
   BarChart3,
-  TrendingUp,
-  AlertTriangle,
   Users,
-  DollarSign,
   FileDown,
-  Calendar,
   Filter,
   X,
   ChevronDown,
   Package,
   ShoppingCart,
-  TrendingDown,
   IndianRupee,
 } from 'lucide-react';
 import {
@@ -462,16 +457,6 @@ const Dashboard: React.FC = () => {
         <div className="page-header">
           <h1 className="page-title">DashBoard & Analytics</h1>
           <p className="page-subtitle">Comprehensive business insights with advanced filters</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => handleExport('csv')}>
-            <FileDown className="h-4 w-4 mr-2" />
-            CSV
-          </Button>
-          <Button variant="outline" onClick={() => handleExport('pdf')}>
-            <FileDown className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
         </div>
       </div>
 
