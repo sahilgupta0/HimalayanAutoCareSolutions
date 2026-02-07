@@ -12,7 +12,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Box,
   X,
   UserPlus,
   ClipboardList  
@@ -75,8 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle, isMobile = fal
       {/* Header */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border">
         <div className={cn('flex items-center gap-3', isCollapsed && !isMobile && 'justify-center w-full')}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-sidebar-primary">
-            <Box className="h-5 w-5 text-sidebar-primary-foreground" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl ">
+            <img src="/favicon.ico" alt="Logo" className="h-14 w-14" />
           </div>
           {(!isCollapsed || isMobile) && (
             <div className="flex flex-col">
