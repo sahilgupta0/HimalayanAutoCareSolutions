@@ -155,7 +155,7 @@ const Request: React.FC = () => {
   const filteredCustomers = useMemo(() => {
     if (!customerSearch.trim()) return [];
     return customers.filter((customer) =>
-      customer.name.toLowerCase().includes(customerSearch.toLowerCase())
+      customer.businessName.toLowerCase().includes(customerSearch.toLowerCase())
     );
   }, [customerSearch, customers]);
 
@@ -175,7 +175,7 @@ const Request: React.FC = () => {
   // Handle Customer Selection
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setCustomerSearch(customer.name);
+    setCustomerSearch(customer.businessName);
   };
 
   // Handle Add to Cart
@@ -333,7 +333,7 @@ const Request: React.FC = () => {
                     className={`px-3 py-1 rounded-full text-sm font-medium w-fit ${
                       request.status === 'Pending'
                         ? 'bg-yellow-100 text-yellow-800'
-                        : request.status === 'Completed'
+                        : request.status === 'Approved'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                     }`}
