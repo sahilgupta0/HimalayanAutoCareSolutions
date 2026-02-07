@@ -115,7 +115,6 @@ const Users: React.FC = () => {
     } else {
       try {
         const result = await signup(formData.email, formData.password, formData.name, formData.role);
-        console.log('SignUp result:', result);
   
         if (result.success) {
           // Use the user data returned from API with proper ID mapping

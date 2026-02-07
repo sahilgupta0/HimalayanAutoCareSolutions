@@ -33,7 +33,6 @@ const Products: React.FC = () => {
 
   const fetchProducts = async () => {
     const response = await getProducts();
-    console.log("Products fetched:", response.data);
     if (response.success) {
       setProducts(response.data);
     } else {

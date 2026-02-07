@@ -13,8 +13,6 @@ const salesSchema = new mongoose.Schema({
             total: { type: Number, required: true }
         }
     ],
-    subtotal: { type: Number, required: true },
-    discount: { type: Number, default: 0 },
     total: { type: Number, required: true },
     status : { type: String, enum: ['Pending', 'Completed', 'Cancelled'], default: 'Pending' },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },

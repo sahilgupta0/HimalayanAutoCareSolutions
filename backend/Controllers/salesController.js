@@ -16,19 +16,16 @@ export const getAllSalesController = async (req, res) => {
 
 export const createSalesController = async (req, res) => {
     // Logic for creating a new sales record
-    const { items, subtotal, discount, total, customerId, salesPersonId } = req.body;
+    const { items, total, customerId, salesPersonId } = req.body;
     try {
         const newSale = new Sale({
             saleDate: new Date(), // Explicitly set current server time in UTC
             items,
-            subtotal,
-            discount,
             total,
             customerId,
             salesPersonId
         });
 
-        console.log('Creating new sale:', newSale);
         await newSale.save();
         return res.status(201).json({ message: 'Sales record created successfully', newSale });
     } catch (error) {
@@ -36,15 +33,15 @@ export const createSalesController = async (req, res) => {
     }
 }
 
-const getAvailableStock = async (productId, quantity    ) => {
+const getAvailableStock = async (productId    ) => {
     const product = await Product.findById(productId);
 
-    if(product){
-        if(product.currentStock >= quantity){
-            product.currentStock -= quantity;
-            await product.save();
-        }
-    }
+    // if(product){
+    //     if(product.currentStock >= quantity){
+    //         product.currentStock -= quantity;
+    //         await product.save();
+    //     }
+    // }
     return product ? product.currentStock : 0;
 }
 
@@ -56,20 +53,20 @@ export const acceptSaleController = async (req, res) => {
             return res.status(404).json({ message: 'Sale not found' });
         }
 
-        let haveAllItems = true;
-
         for (const item of sale.items) {
-            const availableStock = await getAvailableStock(item.productId, item.quantity); 
+            const availableStock = await getAvailableStock(item.productId); 
             if (availableStock < item.quantity) {
-                haveAllItems = false;
-                console.log(`Insufficient stock for product ${item.productId}. Available: ${availableStock}, Required: ${item.quantity}`);
-                break;
+                return res.status(400).json({ message: `Insufficient stock for product ${item.productName}. Available: ${availableStock}, Required: ${item.quantity}` });
             }
-        
         }
-        
-        if (!haveAllItems) {
-            return res.status(400).json({ message: 'Insufficient stock for one or more items' });
+
+        // Update stock for each product
+        for (const item of sale.items) {
+            const product = await Product.findById(item.productId);
+            if (product) {
+                product.currentStock -= item.quantity;
+                await product.save();
+            }
         }
 
         sale.status = 'Completed';
@@ -82,13 +79,11 @@ export const acceptSaleController = async (req, res) => {
 
 export const rejectSalseController = async (req, res) => {
     const { saleId } = req.params;
-    console.log(`Received request to reject sale with saleId: ${saleId}`);
     try {
         const sale = await Sale.findById(saleId);
          if (!sale) {
             return res.status(404).json({ message: 'Sale not found' });
         }
-        console.log(`Rejecting sale with saleId: ${saleId}`, sale); 
         sale.status = 'Cancelled';
         await sale.save();
         return res.status(200).json({ message: 'Sale rejected successfully', sale });
@@ -101,11 +96,9 @@ export const rejectSalseController = async (req, res) => {
 export const getPersonalSalesController = async (req, res) => {
     // Logic for fetching personal sales data
     const { salesPersonId } = req.params;
-    console.log(`Received request for personal sales with salesPersonId: ${salesPersonId}`);
     try {
         const sales = await Sale.find({ salesPersonId }).populate('customerId');  
-        
-        console.log(`Fetching sales for salesPersonId: ${salesPersonId}`, sales);   
+          
         return res.status(200).json(sales);
     } catch (error) {
         return res.status(500).json({ message: 'Error fetching personal sales', error });

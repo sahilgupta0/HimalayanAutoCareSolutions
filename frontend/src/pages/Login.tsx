@@ -33,7 +33,6 @@ const Login: React.FC = () => {
   }
 
   if (isAuthenticated) {
-    console.log('User is already authenticated, redirecting to dashboard.');
     return <Navigate to="/dashboard" />;
   }
   
@@ -57,7 +56,6 @@ const Login: React.FC = () => {
 
     // const result = await apiLogin(email, password);
     const result = await login(email, password);
-    console.log('Login result:', result);
 
     if (result.success) {
       toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });

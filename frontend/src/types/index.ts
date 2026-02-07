@@ -56,8 +56,6 @@ export interface Sale {
   id: Date | string;
   salesDate: string;
   items: SaleItem[];
-  subtotal: number;
-  discount: number;
   total: number;
   customerId?: string;
   salesPersonId: string;

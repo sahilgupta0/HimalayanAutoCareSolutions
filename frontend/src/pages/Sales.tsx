@@ -73,8 +73,6 @@ const Sales: React.FC = () => {
 
   useEffect(() => { 
     fetchSales();
-    console.log("user in sales page:", user);
-    console.log("isAdmin in sales page:", isAdmin);
   }, []);
 
   const salesColumns = [
@@ -82,6 +80,12 @@ const Sales: React.FC = () => {
       key: 'createdAt',
       header: 'Date',
       render: (sale: Sale) => format(new Date(sale.createdAt), 'MMM dd, yyyy HH:mm'),
+      sortable: true,
+      sortFn: (a: Sale, b: Sale) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateA - dateB;
+      },
     },
     {
       key: 'BussinessName',
@@ -99,6 +103,8 @@ const Sales: React.FC = () => {
       render: (sale: Sale) => (
         <span className="font-semibold">{formatCurrency(sale.total)}</span>
       ),
+      sortable: true,
+      sortFn: (a: Sale, b: Sale) => a.total - b.total,
     },
     {
       key: 'salesPersonName',
@@ -113,6 +119,11 @@ const Sales: React.FC = () => {
           {sale.status.charAt(0).toUpperCase() + sale.status.slice(1)}
         </StatusBadge>
       ),
+      sortable: true,
+      sortFn: (a: Sale, b: Sale) => {
+        const statusOrder = { 'Pending': 0, 'Completed': 1, 'Cancelled': 2 };
+        return statusOrder[a.status] - statusOrder[b.status];
+      },
     },
     
     {
@@ -263,15 +274,7 @@ const Sales: React.FC = () => {
               </div>
 
               <div className="space-y-2 p-4 bg-muted rounded-lg">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>{formatCurrency(selectedSale.subtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Discount</span>
-                  <span>-{formatCurrency(selectedSale.discount)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                <div className="flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span>{formatCurrency(selectedSale.total)}</span>
                 </div>

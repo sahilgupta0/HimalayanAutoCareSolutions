@@ -39,7 +39,6 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     const result = await apisignUp(email, password, name, role);
-    console.log('SignUp result:', result);
 
     if (result.success) {
       toast({ title: 'Welcome back!', description: 'You have successfully logged in.' });

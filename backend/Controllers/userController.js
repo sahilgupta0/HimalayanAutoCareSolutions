@@ -5,11 +5,9 @@ import jwt from 'jsonwebtoken';
 
 export const loginController = async (req, res) => {
     // Logic for handling user login
-    console.log('Login attempt with body:', req.body);
     const {email, password} = req.body;
 
     const user = await User.findOne({email, password});
-    console.log('Found user:', user);
     if(!user){
         return res.status(404).json({message: 'User not found'});
     }   
@@ -40,7 +38,6 @@ export const signupController = async (req, res) => {
 
 export const allUsersController = async (req, res) => {
     try {
-        // console.log("Fetching all users");
         const users = await User.find();
         const filteredUsers = users.map(item => ({
             _id: item._id,
@@ -48,7 +45,6 @@ export const allUsersController = async (req, res) => {
             email: item.email,
             role: item.role
         }));
-        // console.log(filteredUsers);
         return res.status(200).json(filteredUsers);
     } catch (error) {
         return res.status(500).json({ message: 'Error fetching users', error });

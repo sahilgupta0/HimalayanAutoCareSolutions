@@ -63,8 +63,6 @@ interface SalesRequest {
   _id?: string;
   saleDate?: Date;
   items: CartItem[];
-  subtotal: number;
-  discount: number;
   total: number;
   status: 'Pending' | 'Approved' | 'Cancelled';
   customerId: string;
@@ -89,7 +87,6 @@ const Request: React.FC = () => {
   const [quantity, setQuantity] = useState('1');
   const [customPrice, setCustomPrice] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [discount, setDiscount] = useState('0');
 
 
   // Fetching the Products list from backend
@@ -124,7 +121,8 @@ const Request: React.FC = () => {
     
     const result = await getMyRequestsFromBackend(user.id);
     if (result.success && result.data) {
-      setRequests(result.data);
+      const reversedData = result.data.slice().reverse(); // Reverse the data to show most recent first
+      setRequests(reversedData);
     }
     else {
       toast({
@@ -244,10 +242,8 @@ const Request: React.FC = () => {
     setCart(cart.filter((item) => item.productId !== productId));
   };
 
-  // Calculate Totals
-  const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
-  const discountAmount = parseFloat(discount) || 0;
-  const total = subtotal - discountAmount;
+  // Calculate Total
+  const total = cart.reduce((sum, item) => sum + item.total, 0);
 
   // Handle Submit Request
   const handleSubmitRequest = async () => {
@@ -271,8 +267,6 @@ const Request: React.FC = () => {
 
     const newRequest: SalesRequest = {
       items: cart,
-      subtotal : subtotal,
-      discount: discountAmount,
       total : total,
       status: 'Pending',
       customerId: selectedCustomer?._id || '',
@@ -301,7 +295,6 @@ const Request: React.FC = () => {
     setSelectedCustomer(null);
     setCustomerSearch('');
     setCart([]);
-    setDiscount('0');
     setIsNewRequestOpen(false);
   };
   return (
@@ -389,12 +382,6 @@ const Request: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  {request.discount > 0 && (
-                    <div className="flex justify-between text-sm text-muted-foreground mt-2">
-                      <span>Discount Applied</span>
-                      <span>-{formatCurrency(request.discount)}</span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="border-t pt-4">
@@ -647,31 +634,10 @@ const Request: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Discount and Total Section */}
+                {/* Total Section */}
                 <div className="space-y-3 pt-4 border-t">
-                  <div className="grid gap-2">
-                    <Label htmlFor="discount">Discount</Label>
-                    <Input
-                      id="discount"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={discount}
-                      onChange={(e) => setDiscount(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </div>
-
                   <div className="space-y-2 p-4 bg-card rounded-lg border">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal</span>
-                      <span>{formatCurrency(subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Discount</span>
-                      <span>-{formatCurrency(discountAmount)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                    <div className="flex justify-between font-bold text-lg">
                       <span>Total</span>
                       <span>{formatCurrency(total)}</span>
                     </div>

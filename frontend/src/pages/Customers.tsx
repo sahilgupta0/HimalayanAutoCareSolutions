@@ -22,13 +22,14 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import {createCustomer, getCustomersFromBackend} from "@/api/apiCall.tsx";
+import {createCustomer, deleteCustomer, getCustomersFromBackend, updateCustomer} from "@/api/apiCall.tsx";
 
 interface Customer {
-  id: string;
+  _id: string;
   name: string;
   businessName: string;
   panNumber: string;
+  district: string;
   area: string;
   phoneNumber: string;
 }
@@ -45,6 +46,7 @@ const Customers: React.FC = () => {
   const [name, setName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [panNumber, setPanNumber] = useState('');
+  const [district, setDistrict] = useState('');
   const [area, setArea] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
@@ -52,21 +54,22 @@ const Customers: React.FC = () => {
     setName('');
     setBusinessName('');
     setPanNumber('');
+    setDistrict('');
     setArea('');
     setPhoneNumber('');
   };
 
   const handleAddCustomer = async () => {
-    if (!name.trim() || !panNumber.trim() || !area.trim() || !phoneNumber.trim() || !businessName.trim()) {
+    if (!name.trim() || !panNumber.trim() || !district.trim() || !area.trim() || !phoneNumber.trim() || !businessName.trim()) {
       toast.error('Details required');
       return;
     }
 
-    const newCustomer: Customer = {
-      id: Date.now().toString(),
+    const newCustomer = {
       name: name.trim(),
       businessName: businessName.trim(),
       panNumber: panNumber.trim(),
+      district: district.trim(),
       area: area.trim(),
       phoneNumber: phoneNumber.trim()
     };
@@ -83,33 +86,55 @@ const Customers: React.FC = () => {
     fetchCustomers();
   };
 
-  const handleEditCustomer = () => {
+  const handleEditCustomer = async () => {
     if (!editingCustomer || !name.trim()) {
       toast.error('Customer name is required');
       return;
     }
 
-    setCustomers(customers.map(c => 
-      c.id === editingCustomer.id 
-        ? { ...c, name: name.trim(), businessName: businessName.trim(), area: area.trim(), phoneNumber: phoneNumber.trim() }
-        : c
-    ));
-    toast.success('Customer updated successfully');
+    const dataToUpdate = {
+      _id: editingCustomer._id,
+      name: name.trim(),
+      businessName: businessName.trim(),
+      panNumber: panNumber.trim(),
+      district: district.trim(),
+      area: area.trim(),
+      phoneNumber: phoneNumber.trim()
+    };
+
+    const response = await updateCustomer(dataToUpdate);
+
+    if(!response.success){
+      toast.error(response.error || 'Failed to update customer');
+      return;
+    }
+    console.log("Update response:", response.data);
+    toast.success(response.data?.message || 'Customer updated successfully');
+
+    await fetchCustomers();
     resetForm();
     setEditingCustomer(null);
     setIsEditDialogOpen(false);
   };
 
-  const handleDeleteCustomer = (id: string) => {
-    setCustomers(customers.filter(c => c.id !== id));
-    toast.success('Customer deleted successfully');
+  const handleDeleteCustomer = async(id: string) => {
+    // Optimistically update UI
+    const response = await deleteCustomer(id);
+    if(!response.success){
+      toast.error(response.error || 'Failed to delete customer');
+      return;
+    }
+    toast.success(response.data?.message || 'Customer deleted successfully');
+    await fetchCustomers();
   };
 
-  const openEditDialog = (customer: Customer) => {
+  const openEditDialog = (customerid : string, customer: Customer) => {
     setEditingCustomer(customer);
     setName(customer.name);
     setBusinessName(customer.businessName);
-    setArea(customer.area);
+    setPanNumber(customer.panNumber);
+    setDistrict(customer.district);
+    setArea(customer.area); 
     setPhoneNumber(customer.phoneNumber);
     setIsEditDialogOpen(true);
   };
@@ -129,13 +154,15 @@ const Customers: React.FC = () => {
   }, []);
 
 
-  // console.log("Fetched Customers: ", customers);
 
   const filteredCustomers = customers.filter(customer =>
-    customer.businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phoneNumber.includes(searchTerm)
-  );
+    customer.businessName.toLowerCase().includes(searchTerm.toLowerCase()) 
+    // customer.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // customer.phoneNumber.includes(searchTerm) || 
+    // customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // customer.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    // customer.panNumber.toLowerCase().includes(searchTerm.toLowerCase())
+  );  
 
   return (
     <div className="space-y-6">
@@ -189,6 +216,16 @@ const Customers: React.FC = () => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="district">District</Label>
+                <Input
+                  id="district"
+                  placeholder="Enter district"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="area">Area</Label>
                 <Input
                   id="area"
@@ -235,7 +272,7 @@ const Customers: React.FC = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Customers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{customers.length}</div>
+            <div className="text-2xl font-bold">{filteredCustomers.filter(c => c.businessName).length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -243,7 +280,7 @@ const Customers: React.FC = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Business Customers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{customers.filter(c => c.businessName).length}</div>
+            <div className="text-2xl font-bold">{filteredCustomers.filter(c => c.businessName).length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -251,7 +288,7 @@ const Customers: React.FC = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Areas Covered</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{new Set(customers.map(c => c.area).filter(Boolean)).size}</div>
+            <div className="text-2xl font-bold">{new Set(filteredCustomers.map(c => c.area).filter(Boolean)).size}</div>
           </CardContent>
         </Card>
       </div>
@@ -279,7 +316,7 @@ const Customers: React.FC = () => {
                 </TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
+                  <TableRow key={customer._id}>
                     <TableCell>
                       <div className="font-medium">{customer.name}</div>
                       <div className="sm:hidden text-xs text-muted-foreground">
@@ -322,7 +359,7 @@ const Customers: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => openEditDialog(customer)}
+                          onClick={() => openEditDialog(customer._id, customer)}
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -330,7 +367,7 @@ const Customers: React.FC = () => {
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteCustomer(customer.id)}
+                          onClick={() => handleDeleteCustomer(customer._id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -372,6 +409,25 @@ const Customers: React.FC = () => {
                 onChange={(e) => setBusinessName(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-panNumber">PAN Number</Label>
+              <Input
+                id="edit-panNumber"
+                placeholder="Enter PAN number"
+                value={panNumber}
+                onChange={(e) => setPanNumber(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-district">District</Label>
+              <Input
+                id="edit-district"
+                placeholder="Enter district"
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="edit-area">Area</Label>
               <Input

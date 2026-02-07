@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Column<T> {
@@ -24,6 +24,8 @@ interface Column<T> {
   header: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
+  sortable?: boolean;
+  sortFn?: (a: T, b: T) => number;
 }
 
 interface DataTableProps<T> {
@@ -48,10 +50,58 @@ export function DataTable<T extends { id?: string; _id?: string }>({
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [sortKey, setSortKey] = React.useState<string | null>(null);
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('asc');
 
-  const totalPages = Math.ceil(data.length / itemsPerPage);
+  // Sort data
+  const sortedData = React.useMemo(() => {
+    if (!sortKey) return data;
+    
+    const column = columns.find(col => col.key === sortKey);
+    if (!column?.sortable) return data;
+
+    return [...data].sort((a, b) => {
+      if (column.sortFn) {
+        return sortOrder === 'asc' ? column.sortFn(a, b) : column.sortFn(b, a);
+      }
+      
+      const aValue = (a as any)[sortKey];
+      const bValue = (b as any)[sortKey];
+      
+      if (aValue === bValue) return 0;
+      if (aValue === null || aValue === undefined) return 1;
+      if (bValue === null || bValue === undefined) return -1;
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : 1;
+      } else {
+        return aValue > bValue ? -1 : 1;
+      }
+    });
+  }, [data, sortKey, sortOrder, columns]);
+
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleSort = (columnKey: string) => {
+    if (sortKey === columnKey) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(columnKey);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
+
+  const getSortIcon = (columnKey: string) => {
+    if (sortKey !== columnKey) {
+      return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    }
+    return sortOrder === 'asc' ? 
+      <ArrowUp className="ml-2 h-4 w-4" /> : 
+      <ArrowDown className="ml-2 h-4 w-4" />;
+  };
 
   const getItemKey = (item: T, index: number): string => {
     return (item as any).id || (item as any)._id || `row-${index}`;
@@ -100,7 +150,17 @@ export function DataTable<T extends { id?: string; _id?: string }>({
             <TableRow className="bg-muted/50 hover:bg-muted/50">
               {columns.map((column) => (
                 <TableHead key={column.key} className={cn('font-semibold', column.className)}>
-                  {column.header}
+                  {column.sortable ? (
+                    <button
+                      onClick={() => handleSort(column.key)}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      {column.header}
+                      {getSortIcon(column.key)}
+                    </button>
+                  ) : (
+                    column.header
+                  )}
                 </TableHead>
               ))}
             </TableRow>
@@ -133,7 +193,7 @@ export function DataTable<T extends { id?: string; _id?: string }>({
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, data.length)} of {data.length} entries
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedData.length)} of {sortedData.length} entries
           </p>
           <div className="flex items-center gap-2">
             <Button

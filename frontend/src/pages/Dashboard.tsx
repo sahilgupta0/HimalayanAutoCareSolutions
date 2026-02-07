@@ -37,6 +37,7 @@ import {
   Package,
   ShoppingCart,
   TrendingDown,
+  IndianRupee,
 } from 'lucide-react';
 import {
   BarChart,
@@ -156,7 +157,6 @@ const Dashboard: React.FC = () => {
     fetchProducts();
   }, [toast]);
 
-  console.log("products in reports page:", products);
   
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -269,7 +269,6 @@ const Dashboard: React.FC = () => {
   const reportData = useMemo(() => {
     const totalTransactions = filteredSales.length;
     const totalAmount = filteredSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-    const totalDiscount = filteredSales.reduce((sum, sale) => sum + (sale.discount || 0), 0);
     const avgTransactionValue = totalTransactions > 0 ? totalAmount / totalTransactions : 0;
     
     // Calculate items sold by category
@@ -296,7 +295,6 @@ const Dashboard: React.FC = () => {
     return {
       totalTransactions,
       totalAmount,
-      totalDiscount,
       avgTransactionValue,
       categoryStats,
       statusBreakdown,
@@ -312,46 +310,22 @@ const Dashboard: React.FC = () => {
   }, 0);
   const totalProfit = reportData.totalAmount - totalCost;
 
-  // Sales by day (filtered data)
-  const salesByDay = useMemo(() => {
-    const dayMap: Record<string, number> = {
-      'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0
+  // Sales by month (filtered data)
+  const salesByMonth = useMemo(() => {
+    const monthMap: Record<string, number> = {
+      'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0, 'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0
     };
     
     filteredSales.forEach(sale => {
       const date = new Date(sale.createdAt);
-      const dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
-      dayMap[dayName] += sale.total;
+      const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][date.getMonth()];
+      monthMap[monthName] += sale.total;
     });
 
-    return Object.entries(dayMap).map(([name, sales]) => ({ name, sales }));
+    return Object.entries(monthMap).map(([name, sales]) => ({ name, sales }));
   }, [filteredSales]);
 
-  // Best selling products (filtered)
-  const productSales = useMemo(() => {
-    const productMap: Record<string, { product: any; totalSold: number; totalRevenue: number }> = {};
-    
-    filteredSales.forEach(sale => {
-      sale.items.forEach(item => {
-        const product = products.find(p => p.id === item.productId);
-        if (product) {
-          if (!productMap[item.productId]) {
-            productMap[item.productId] = { product, totalSold: 0, totalRevenue: 0 };
-          }
-          productMap[item.productId].totalSold += item.quantity;
-          productMap[item.productId].totalRevenue += item.total;
-        }
-      });
-    });
 
-    return Object.values(productMap)
-      .map(({ product, totalSold, totalRevenue }) => ({
-        ...product,
-        totalSold,
-        totalRevenue,
-      }))
-      .sort((a, b) => b.totalRevenue - a.totalRevenue);
-  }, [filteredSales]);
 
   // Category distribution
   const categoryData = useMemo(() => {
@@ -364,10 +338,6 @@ const Dashboard: React.FC = () => {
 
   const COLORS = ['hsl(226, 71%, 40%)', 'hsl(167, 76%, 38%)', 'hsl(38, 92%, 50%)', 'hsl(0, 84%, 60%)'];
 
-  // Low stock products
-  const lowStockProducts = products.filter(
-    p => p.currentStock < p.minStockLevel && p.isActive
-  );
 
   // Sales by staff (filtered)
   const salesByStaff = useMemo(() => {
@@ -490,7 +460,7 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="page-header">
-          <h1 className="page-title">Reports & Analytics</h1>
+          <h1 className="page-title">DashBoard & Analytics</h1>
           <p className="page-subtitle">Comprehensive business insights with advanced filters</p>
         </div>
         <div className="flex items-center gap-2">
@@ -863,7 +833,7 @@ const Dashboard: React.FC = () => {
         <Card className="border-l-4 border-l-success">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
-            <DollarSign className="h-5 w-5 text-success" />
+            <IndianRupee className="h-5 w-5 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-success">{formatCurrency(reportData.totalAmount)}</div>
@@ -871,33 +841,7 @@ const Dashboard: React.FC = () => {
               Avg: {formatCurrency(reportData.avgTransactionValue)}
             </p>
           </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-warning">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Discount</CardTitle>
-            <TrendingDown className="h-5 w-5 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-warning">{formatCurrency(reportData.totalDiscount)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {((reportData.totalDiscount / (reportData.totalAmount + reportData.totalDiscount)) * 100).toFixed(1)}% discount rate
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-info">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Net Sales</CardTitle>
-            <TrendingUp className="h-5 w-5 text-info" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-info">{formatCurrency(totalProfit)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {((totalProfit / reportData.totalAmount) * 100).toFixed(1)}% margin
-            </p>
-          </CardContent>
-        </Card>
+        </Card>         
       </div>
 
       {/* Category-wise Sales Report */}
@@ -993,8 +937,6 @@ const Dashboard: React.FC = () => {
       <Tabs defaultValue="charts" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           <TabsTrigger value="charts">Charts</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="stock">Stock</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>
         </TabsList>
 
@@ -1003,12 +945,12 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Sales Trend by Day</CardTitle>
-                <CardDescription>Sales distribution across the week</CardDescription>
+                <CardTitle>Sales Trend by Months</CardTitle>
+                <CardDescription>Sales distribution across the year</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={salesByDay}>
+                  <BarChart data={salesByMonth}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis dataKey="name" className="text-xs" />
                     <YAxis className="text-xs" />
@@ -1037,99 +979,54 @@ const Dashboard: React.FC = () => {
                     No data available
                   </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}`}
-                      >
-                        {categoryData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <div className="space-y-4">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                        >
+                          {categoryData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    
+                    {/* Legend Table */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+                      {categoryData.map((item, index) => {
+                        const totalValue = categoryData.reduce((sum, d) => sum + d.value, 0);
+                        const percentage = ((item.value / totalValue) * 100).toFixed(1);
+                        return (
+                          <div key={`legend-${index}`} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                            <div 
+                              className="w-4 h-4 rounded-sm flex-shrink-0" 
+                              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{item.name}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-sm">{item.value}</p>
+                              <p className="text-xs text-muted-foreground">{percentage}%</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        {/* Product Analysis */}
-        <TabsContent value="products" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Best Selling Products</CardTitle>
-              <CardDescription>Top performing products by revenue (filtered)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {productSales.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No products match the selected filters</p>
-              ) : (
-                <div className="space-y-4">
-                  {productSales.slice(0, 10).map((product, index) => (
-                    <div key={product.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold text-muted-foreground">#{index + 1}</span>
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {product.sku && `${product.sku} • `}{product.category || 'Uncategorized'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(product.totalRevenue)}</p>
-                        <p className="text-sm text-muted-foreground">{product.totalSold} units sold</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Stock Report */}
-        <TabsContent value="stock" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-warning" />
-                Low Stock Alert
-              </CardTitle>
-              <CardDescription>Products below minimum stock level</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {lowStockProducts.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">All products are adequately stocked</p>
-              ) : (
-                <div className="space-y-4">
-                  {lowStockProducts.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between p-4 bg-warning/5 border border-warning/20 rounded-lg">
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {product.sku && `${product.sku} • `}{product.category || 'Uncategorized'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-warning">{product.currentStock} in stock</p>
-                        <p className="text-sm text-muted-foreground">Min: {product.minStockLevel || 0}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Staff Performance */}
